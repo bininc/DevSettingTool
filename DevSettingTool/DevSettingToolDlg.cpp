@@ -6,6 +6,7 @@
 #include "DevSettingTool.h"
 #include "DevSettingToolDlg.h"
 #include "afxdialogex.h"
+#include "resource.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -64,6 +65,8 @@ BEGIN_MESSAGE_MAP(CDevSettingToolDlg, CDialog)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_COMMAND(IDM_EXIT, &CDevSettingToolDlg::OnExit)
+	ON_COMMAND(IDM_About, &CDevSettingToolDlg::OnAbout)
 END_MESSAGE_MAP()
 
 
@@ -152,3 +155,16 @@ HCURSOR CDevSettingToolDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CDevSettingToolDlg::OnExit()
+{
+	AfxGetMainWnd() -> SendMessage(WM_CLOSE); //ÍË³ö³ÌÐò
+}
+
+
+void CDevSettingToolDlg::OnAbout()
+{
+	CAboutDlg dlg;
+	dlg.DoModal();
+}

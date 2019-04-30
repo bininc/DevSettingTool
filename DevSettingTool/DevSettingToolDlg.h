@@ -24,6 +24,7 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
+	
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
@@ -31,4 +32,7 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnExit();
+	afx_msg void OnAbout();
 };
