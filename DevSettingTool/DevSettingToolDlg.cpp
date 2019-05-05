@@ -7,6 +7,7 @@
 #include "DevSettingToolDlg.h"
 #include "afxdialogex.h"
 #include "resource.h"
+#include "CnComm.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -20,12 +21,12 @@ class CAboutDlg : public CDialog
 public:
 	CAboutDlg();
 
-// 对话框数据
+	// 对话框数据
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
 
 // 实现
@@ -59,6 +60,7 @@ CDevSettingToolDlg::CDevSettingToolDlg(CWnd* pParent /*=NULL*/)
 void CDevSettingToolDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_SELCOM, m_selCom);
 }
 
 BEGIN_MESSAGE_MAP(CDevSettingToolDlg, CDialog)
@@ -102,6 +104,7 @@ BOOL CDevSettingToolDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	InitCtrl();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -159,7 +162,7 @@ HCURSOR CDevSettingToolDlg::OnQueryDragIcon()
 
 void CDevSettingToolDlg::OnExit()
 {
-	AfxGetMainWnd() -> SendMessage(WM_CLOSE); //退出程序
+	AfxGetMainWnd()->SendMessage(WM_CLOSE); //退出程序
 }
 
 
@@ -167,4 +170,74 @@ void CDevSettingToolDlg::OnAbout()
 {
 	CAboutDlg dlg;
 	dlg.DoModal();
+}
+
+void CDevSettingToolDlg::InitCtrl()
+{
+	ReLoadCOM(TRUE);
+}
+
+void CDevSettingToolDlg::ReLoadCOM(bool bReset)
+{
+	int vl_i;
+	CString vl_str;
+	//CComboBox* pl_cmb;
+	VEC_STR vl_vec;
+	VEC_STR::iterator itCom;
+	CnComm ::GetComList(vl_vec);//现有的
+	if (vl_vec == m_vecCOM)
+	{
+		return;
+	}
+	m_vecCOM = vl_vec;
+	if (vl_vec.size() > 0)
+	{
+		if (bReset)
+		{
+			m_selCom.ResetContent();
+			for (itCom = vl_vec.begin()
+				; itCom != vl_vec.end()
+				; ++itCom
+				)
+			{
+				m_selCom.AddString((*itCom).c_str());
+			}
+			if (m_selCom.GetCount() > 1)
+			{
+				m_selCom.SetCurSel(m_selCom.GetCount() - 1);
+			}
+			else
+			{
+				m_selCom.SetCurSel(0);
+			}
+		}
+		else
+		{
+			m_selCom.GetWindowText(vl_str);
+			m_selCom.ResetContent();
+			for (itCom = vl_vec.begin()
+				; itCom != vl_vec.end()
+				; ++itCom
+				)
+			{
+				m_selCom.AddString((*itCom).c_str());
+			}
+			if (find(vl_vec.begin(), vl_vec.end(), LPCSTR(vl_str)) != vl_vec.end())
+			{
+				m_selCom.SetWindowText(vl_str);
+			}
+			else
+			{
+				if (m_selCom.GetCount())
+				{
+					m_selCom.SetCurSel(m_selCom.GetCount() - 1);
+				}
+				else
+				{
+					m_selCom.SetCurSel(0);
+				}
+			}
+
+		}
+	}
 }

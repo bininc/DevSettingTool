@@ -89,7 +89,7 @@
 	#define CN_2STR(L)		_T(#L)					//!< 将表达式L转换成字符串
 	#define CN_LINE(L)		CN_2STR(L)				//!< 将行号L转换成字符串
 	/*! 内部断言 启用异常将抛出异常 否则调试版将退出 发行版未启用异常将不做任何处理 */
-	#define CN_ASSERT(E)	((E) ? true : CnComm::Assert(_T("CN_ASSERT(")_T(#E)_T(") failed; CnComm(")CN_LINE(__LINE__)_T("); ")))
+	#define CN_ASSERT(E)	((E) ? true : CnComm::Assert(_T("CN_ASSERT(\")_T(#E)_T(\") failed; CnComm(\")CN_LINE(__LINE__)_T(\"); ")))
 #endif
 
 //CN_COMM_STD_EXCEPTION CN_ASSERT 将抛出标准C++异常			

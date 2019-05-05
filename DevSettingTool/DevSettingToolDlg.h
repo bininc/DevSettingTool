@@ -10,6 +10,8 @@ class CDevSettingToolDlg : public CDialog
 {
 // 构造
 public:
+	void InitCtrl(void);
+	void ReLoadCOM(bool bReset);
 	CDevSettingToolDlg(CWnd* pParent = NULL);	// 标准构造函数
 
 // 对话框数据
@@ -24,7 +26,7 @@ public:
 // 实现
 protected:
 	HICON m_hIcon;
-	
+	CComboBox m_selCom;
 
 	// 生成的消息映射函数
 	virtual BOOL OnInitDialog();
