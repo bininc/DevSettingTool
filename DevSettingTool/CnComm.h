@@ -1,6 +1,6 @@
-/*! \mainpage CnComm v1.51 多线程串口通讯库 
+/*! \mainpage CnComm v1.51 多线程串口通讯库
  *	\section About 关于
- *  
+ *
  *  \n 版本: CnComm v1.51
  *  \n 用途: WINDOWS/WINCE 多线程串口通讯库
  *  \n 语言: C++ (ANSI/UNICODE)
@@ -9,16 +9,16 @@
  *  \n 编译: BC++ 5(free tool); C++ BUILDER 4, 5, 6, X; EVC 4(sp4); G++ 3, 4; Intel C++ 7, 8, 9; VC++ 6(sp6), .NET, 2003, 2005;
  *  \n 作者: llbird
  *  \n 邮箱: wushaojian@21cn.com
- *  \n 博客: http://blog.csdn.net/wujian53 http://www.cppblog.com/llbird  
+ *  \n 博客: http://blog.csdn.net/wujian53 http://www.cppblog.com/llbird
  *  \n 维护: 2002.10 - 2009.8
  *
  *  \section Announce 说明
- *  \n 1) 可以自由使用及传播, 请保留相关声明;                                           
- *  \n 2) 不推荐直接在本代码上修改, 应通过C++继承扩展机制扩展本代码;                          
- *  \n 3) 如果您直接修改本代码, 请发一份给我，便于同网友分享您有益的改动;                              
+ *  \n 1) 可以自由使用及传播, 请保留相关声明;
+ *  \n 2) 不推荐直接在本代码上修改, 应通过C++继承扩展机制扩展本代码;
+ *  \n 3) 如果您直接修改本代码, 请发一份给我，便于同网友分享您有益的改动;
  *  \n 4) 不兼容cnComm1.4以下版本, 有很大改动，同时也更名CnComm;
  *  \n 5) 还是那句老话, 水平有限, 错误在所难免, 欢迎来信指正, 收入有限, 时间有限, 不提供除CnComm内部问题外的咨询;
- *  
+ *
  *  \section Log 日志
  *  \n 2009 v1.51 修正版; 考虑到将来的工作中可能不会再和串口打交道，这很可能是最后一版;
  *  \n 2009 v1.5  增加内置分块链表缓冲区; 增加对WINCE的支持(模拟器下测试通过);
@@ -40,19 +40,19 @@
 #include <tchar.h>
 
 #if defined(UNDER_CE) && !defined(CN_COMM_FOR_CE)
-	#define CN_COMM_FOR_CE		UNDER_CE			//!< 配置WINCE的支持   
+#define CN_COMM_FOR_CE		UNDER_CE			//!< 配置WINCE的支持   
 #endif
 
 #ifndef CN_COMM_FOR_CE
-	#include <mcx.h>
-	#include <process.h>							// WINCE没有process.h
+#include <mcx.h>
+#include <process.h>							// WINCE没有process.h
 #endif
 
 #ifndef ON_COM_MSG_BASE 
-	#define ON_COM_MSG_BASE		WM_USER + 618		//!< 消息编号的基点  
+#define ON_COM_MSG_BASE		WM_USER + 618		//!< 消息编号的基点  
 #endif
 
-// 送到窗口的消息 WPARAM COM端口号
+ // 送到窗口的消息 WPARAM COM端口号
 #define ON_COM_RECEIVE			ON_COM_MSG_BASE + 0	//!< EV_RXCHAR 
 #define ON_COM_RXCHAR			ON_COM_MSG_BASE + 0 //!< EV_RXCHAR 
 #define ON_COM_CTS				ON_COM_MSG_BASE + 1 //!< EV_CTS  LPARAM==1 CTS ON 
@@ -70,83 +70,83 @@
 #define ON_COM_PERR				ON_COM_MSG_BASE + 13//!< EV_PERR
 
 #ifndef CN_COMM_WAIT_EVENT
-	#ifdef CN_COMM_FOR_CE
-		#define CN_COMM_WAIT_EVENT	EV_RXCHAR | EV_ERR | EV_CTS | EV_DSR | EV_BREAK | EV_TXEMPTY | EV_RING | EV_RLSD | EV_POWER //!< WINCE 默认的等待事件| EV_RXFLAG 
-	#else
-		#define CN_COMM_WAIT_EVENT	EV_RXCHAR | EV_ERR | EV_CTS | EV_DSR | EV_BREAK | EV_TXEMPTY | EV_RING | EV_RLSD 			//!< WIN32 默认的等待事件| EV_RXFLAG
-	#endif
+#ifdef CN_COMM_FOR_CE
+#define CN_COMM_WAIT_EVENT	EV_RXCHAR | EV_ERR | EV_CTS | EV_DSR | EV_BREAK | EV_TXEMPTY | EV_RING | EV_RLSD | EV_POWER //!< WINCE 默认的等待事件| EV_RXFLAG 
+#else
+#define CN_COMM_WAIT_EVENT	EV_RXCHAR | EV_ERR | EV_CTS | EV_DSR | EV_BREAK | EV_TXEMPTY | EV_RING | EV_RLSD 			//!< WIN32 默认的等待事件| EV_RXFLAG
+#endif
 #endif
 
 #ifndef CN_COMM_BUFFER_MIN_BLOCK_SIZE
-	#define CN_COMM_BUFFER_MIN_BLOCK_SIZE 1024		//!< 定义缓冲区块的最小值 
+#define CN_COMM_BUFFER_MIN_BLOCK_SIZE 1024		//!< 定义缓冲区块的最小值 
 #endif
 
 #if CN_COMM_BUFFER_MIN_BLOCK_SIZE < 4
-	#error CN_COMM_BUFFER_MIN_BLOCK_SIZE must >= 4	//!< 缓冲区块的最小值不允许小于4 
+#error CN_COMM_BUFFER_MIN_BLOCK_SIZE must >= 4	//!< 缓冲区块的最小值不允许小于4 
 #endif
 
 #ifndef CN_ASSERT
-	#define CN_2STR(L)		_T(#L)					//!< 将表达式L转换成字符串
-	#define CN_LINE(L)		CN_2STR(L)				//!< 将行号L转换成字符串
-	/*! 内部断言 启用异常将抛出异常 否则调试版将退出 发行版未启用异常将不做任何处理 */
-	#define CN_ASSERT(E)	((E) ? true : CnComm::Assert(_T("CN_ASSERT(\")_T(#E)_T(\") failed; CnComm(\")CN_LINE(__LINE__)_T(\"); ")))
+#define CN_2STR(L)		_T(#L)					//!< 将表达式L转换成字符串
+#define CN_LINE(L)		CN_2STR(L)				//!< 将行号L转换成字符串
+/*! 内部断言 启用异常将抛出异常 否则调试版将退出 发行版未启用异常将不做任何处理 */
+#define CN_ASSERT(E)	((E) ? true : CnComm::Assert(_T("CN_ASSERT(") _T(#E) _T(") failed; CnComm(") CN_LINE(__LINE__) _T("); ")))
 #endif
 
 //CN_COMM_STD_EXCEPTION CN_ASSERT 将抛出标准C++异常			
 #ifdef CN_COMM_STD_EXCEPTION
-	#include <stdexcept> //throw runtime_error(msg)
+#include <stdexcept> //throw runtime_error(msg)
 #endif
 
 //CN_COMM_VCL_EXCEPTION CN_ASSERT 将抛出VCL异常(C++ Builder)	
 #if defined(CN_COMM_VCL_EXCEPTION) && defined(__BORLANDC__)
-	#include <vcl.h> //throw new Exception(msg)	
+#include <vcl.h> //throw new Exception(msg)	
 #endif
 
 //CN_COMM_MFC_EXCEPTION CN_ASSERT 将抛出MFC异常(VC++)			
 #ifdef CN_COMM_MFC_EXCEPTION
-	#include <Afx.h> //throw new MfcException(msg)	
+#include <Afx.h> //throw new MfcException(msg)	
 #endif
 
-/*! \class CnComm 
-	\version 1.5 
+/*! \class CnComm
+	\version 1.5
 	\date 2002.10-2009.4
-	\author llbird(wushaojian@21cn.com http://www.cppblog.com/llbird  http://blog.csdn.net/wujian53) 
-	\brief WIN32/WINCE C++ (ANSI/UNICODE) 多线程串口通讯基础库  
+	\author llbird(wushaojian@21cn.com http://www.cppblog.com/llbird  http://blog.csdn.net/wujian53)
+	\brief WIN32/WINCE C++ (ANSI/UNICODE) 多线程串口通讯基础库
 	\example doc_0.cpp 例子0 \example doc_1.cpp \example doc_2.cpp \example doc_3.cpp \example SerialDlg.cpp
  */
-class CnComm    
+class CnComm
 {
 public:
 	//! 临界区
 	struct	InnerLock;
 	//! 缓冲区类
-	class	BlockBuffer;	
+	class	BlockBuffer;
 	//! MFC异常
-	class	MfcException;				
+	class	MfcException;
 	//! 用于配置模式的枚举值, 32位掩码
 	enum OptionEnum
 	{
-		EN_THREAD		= 0x00000001,	//!< 启用监视线程 伴随串口打开启动 WatchThread
-		EN_OVERLAPPED	= 0x00000002,	//!< 启用异步重叠IO方式 
-		EN_RX_BUFFER	= 0x00000004,	//!< 启用读缓冲
-		EN_TX_BUFFER	= 0x00000008,	//!< 启用写缓冲
-		EN_RX_THREAD	= 0x00000010,	//!< 启动读线程 暂时未用 ReadThread
-		EN_TX_THREAD	= 0x00000020,	//!< 启动写线程 用于WINCE的双工操作 应同时启用写缓冲 伴随串口打开启动 WriteThread
-		EN_SUSPEND		= 0x00000040,	//!< 启动线程时暂停 
-		EN_ABOVE_NORMAL	= 0x00000080,	//!< 启动线程优先级高一个级别
-		EN_FLUSH		= 0x00000100,	//!< 当关闭串口时输出队列未发送完的数据(端口缓冲区) 并阻塞等待                          
-		EN_FLUSH_ALL	= 0x00000200	//!< 同上(包括写缓冲及端口队列) 您如果重载了写模块而又没有写好 可能导致线程挂起无法正常关闭 
+		EN_THREAD = 0x00000001,	//!< 启用监视线程 伴随串口打开启动 WatchThread
+		EN_OVERLAPPED = 0x00000002,	//!< 启用异步重叠IO方式 
+		EN_RX_BUFFER = 0x00000004,	//!< 启用读缓冲
+		EN_TX_BUFFER = 0x00000008,	//!< 启用写缓冲
+		EN_RX_THREAD = 0x00000010,	//!< 启动读线程 暂时未用 ReadThread
+		EN_TX_THREAD = 0x00000020,	//!< 启动写线程 用于WINCE的双工操作 应同时启用写缓冲 伴随串口打开启动 WriteThread
+		EN_SUSPEND = 0x00000040,	//!< 启动线程时暂停 
+		EN_ABOVE_NORMAL = 0x00000080,	//!< 启动线程优先级高一个级别
+		EN_FLUSH = 0x00000100,	//!< 当关闭串口时输出队列未发送完的数据(端口缓冲区) 并阻塞等待                          
+		EN_FLUSH_ALL = 0x00000200	//!< 同上(包括写缓冲及端口队列) 您如果重载了写模块而又没有写好 可能导致线程挂起无法正常关闭 
 	};
 	//! 构造函数 配置具体应用模式 \param[in] dwOption 根据需要由OptionEnum组合而成
 #ifdef CN_COMM_FOR_CE
 	//! WINCE:默认打开串口时启动监视线程 启用写独立线程 启用写缓冲
-	CnComm(DWORD dwOption = EN_THREAD ) 
+	CnComm(DWORD dwOption = EN_THREAD)
 #else 
 	//! WIN32:默认打开串口时启动监视线程 异步重叠方式 
 	CnComm(DWORD dwOption = EN_THREAD | EN_OVERLAPPED)
 #endif
 	{
-		Init(); 
+		Init();
 		SetOption(dwOption);
 	}
 	//! 另一模式构造 兼容cnComm1~1.3 \param[in] bThread 启动监视线程 \param[in] bOverlapped 启用重叠I/O
@@ -160,13 +160,13 @@ public:
 		if (bOverlapped)
 			dwOption |= EN_OVERLAPPED;
 
-		Init(); 
+		Init();
 		SetOption(dwOption);
 	}
 	//! 析构 自动关闭串口 
 	virtual ~CnComm()
 	{
-		Close(); 
+		Close();
 		Destroy();
 	}
 	//! 判断串口是或打开
@@ -175,7 +175,7 @@ public:
 		return hComm_ != INVALID_HANDLE_VALUE;
 	}
 	//! 判断串口是或打开
-	operator bool ()
+	operator bool()
 	{
 		return hComm_ != INVALID_HANDLE_VALUE;
 	}
@@ -211,10 +211,10 @@ public:
 
 		dwOption_ = dwOption;
 
-	#ifdef CN_COMM_FOR_CE
+#ifdef CN_COMM_FOR_CE
 		CN_ASSERT(!IsOverlappedMode()); //! WINCE不允许使用重叠IO 即EN_OVERLAPPED掩码
 		dwOption_ &= (~EN_OVERLAPPED);
-	#endif
+#endif
 	}
 	//! 修改CnComm的基本配置参数 在打开串口前设置有意义 \param[in] dwRemove 删除的32位配置掩码 \param[in] dwAdd 添加的32位配置掩码
 	void ModifyOption(DWORD dwRemove, DWORD dwAdd)
@@ -224,10 +224,10 @@ public:
 		dwOption_ &= ~dwRemove;
 		dwOption_ |= dwAdd;
 
-	#ifdef CN_COMM_FOR_CE
+#ifdef CN_COMM_FOR_CE
 		CN_ASSERT(!IsOverlappedMode()); //! WINCE不允许使用重叠IO 即EN_OVERLAPPED掩码
 		dwOption_ &= (~EN_OVERLAPPED);
-	#endif
+#endif
 	}
 	//! 是否重叠IO模式
 	bool IsOverlappedMode()
@@ -305,18 +305,18 @@ public:
 	//! 打开串口 请注意与cnComm1~1.3的区别 cnComm1~1.3将使用9600, n, 8, 1配置端口 而1.5将只打开端口不配置波特率等参数  \param[in] dwPort 串口序号 1~1024
 	bool Open(DWORD dwPort)
 	{
-		if (!CN_ASSERT(dwPort>=1 && dwPort<=1024))
+		if (!CN_ASSERT(dwPort >= 1 && dwPort <= 1024))
 			return false;
-		
+
 		BindPort(dwPort);
-		
-		if(!CN_ASSERT(OpenPort()))
+
+		if (!CN_ASSERT(OpenPort()))
 			return false;
-		
-		if(!CN_ASSERT(SetupPort()))
+
+		if (!CN_ASSERT(SetupPort()))
 			return Close(), false;
 
-		if ((dwOption_ & (EN_THREAD|EN_RX_THREAD|EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
+		if ((dwOption_ & (EN_THREAD | EN_RX_THREAD | EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
 			return Close(), false;
 
 		return true;
@@ -325,78 +325,78 @@ public:
 	//! 打开串口 缺省 9600, n, 8, 1 \sa bool Open(DWORD dwPort, LPCTSTR szSetStr)
 	bool Open(DWORD dwPort, DWORD dwBaudRate, BYTE btParity = NOPARITY, BYTE btByteSize = 8, BYTE btStopBits = ONESTOPBIT)
 	{
-		if (!CN_ASSERT(dwPort>=1 && dwPort<=1024))
+		if (!CN_ASSERT(dwPort >= 1 && dwPort <= 1024))
 			return false;
-		
+
 		BindPort(dwPort);
-		
+
 		if (!CN_ASSERT(OpenPort()))
 			return false;
-		
+
 		if (!CN_ASSERT(SetState(dwBaudRate, btParity, btByteSize, btStopBits)))
 			return Close(), false;
 
 		if (!CN_ASSERT(SetupPort()))
 			return Close(), false;
 
-		if ((dwOption_ & (EN_THREAD|EN_RX_THREAD|EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
+		if ((dwOption_ & (EN_THREAD | EN_RX_THREAD | EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
 			return Close(), false;
 
 		return true;
 	}
 #ifndef CN_COMM_FOR_CE
-	/*! \param[in] dwPort 串口序号 1~1024 \param[in] szSetStr 字符串参数 "BBBB,P,D,S"  例: "9600,N,8,1"  "1200,O,7,2" 
+	/*! \param[in] dwPort 串口序号 1~1024 \param[in] szSetStr 字符串参数 "BBBB,P,D,S"  例: "9600,N,8,1"  "1200,O,7,2"
 		 BBBB为波特率 P为奇偶校验(E | M | N | O | S) D为数据位数(4 ~ 8) S为停止位数(1 | 1.5 | 2)
 		 \code Open(1, "9600,E,8,2"); \endcode  \b 请注意字符串参数的顺序 并检查返回值
 		 不支持WINCE, 原本我自己写了一个替代函数, 考虑到WINCE硬件的复杂性, 移植性可能不好, 故从这个版本中删除了	*/
-	//! 打开串口, 字符串设置串口
+		 //! 打开串口, 字符串设置串口
 	bool Open(DWORD dwPort, LPCTSTR szSetStr)
 	{
-		if (!CN_ASSERT(dwPort>=1 && dwPort<=1024))
+		if (!CN_ASSERT(dwPort >= 1 && dwPort <= 1024))
 			return false;
-		
+
 		BindPort(dwPort);
-		
+
 		if (!CN_ASSERT(OpenPort()))
 			return false;
-		
-		if (!CN_ASSERT(SetState(szSetStr))) 
+
+		if (!CN_ASSERT(SetState(szSetStr)))
 			return Close(), false;
 
 		if (!CN_ASSERT(SetupPort()))
 			return Close(), false;
 
-		if ((dwOption_ & (EN_THREAD|EN_RX_THREAD|EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
+		if ((dwOption_ & (EN_THREAD | EN_RX_THREAD | EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
 			return Close(), false;
-		
+
 		return true;
 	}
 #endif
-	/*! \param[in] dwPort 此时该参数没有具体意义，仅用于消息通知中辨别端口号，应注意不和其他端口号重复 
+	/*! \param[in] dwPort 此时该参数没有具体意义，仅用于消息通知中辨别端口号，应注意不和其他端口号重复
 		\param[in] szPortName 为指定的端口名称, 就像WINDOWS下\\\\.\\COM1或者WINCE下COM1: , 有些虚拟串口可以有特殊的名称
 		\param[in] dwBaudRate 波特率	\param[in] btParity 奇偶校验	\param[in] btByteSize 数据位数	\param[in] btStopBits 停止位数
 		\code Open(9999, "COM3:", 2400); \endcode 	\code Open(1028, "COM3:", 9600, N, 7, ONESTOPBIT); \endcode	*/
-	//! 指定的端口名称打开串口
+		//! 指定的端口名称打开串口
 	bool Open(DWORD dwPort, LPCTSTR szPortName, DWORD dwBaudRate, BYTE btParity = NOPARITY, BYTE btByteSize = 8, BYTE btStopBits = ONESTOPBIT)
 	{
-		if(!CN_ASSERT(_tcslen(szPortName) < 64 - 1))
+		if (!CN_ASSERT(_tcslen(szPortName) < 64 - 1))
 			return false;
-		
+
 		_tcscpy(szName_, szPortName);
 		dwPort_ = dwPort;//用于通知消息
-		
+
 		if (!CN_ASSERT(OpenPort()))
 			return false;
-		
+
 		if (!CN_ASSERT(SetState(dwBaudRate, btParity, btByteSize, btStopBits)))
 			return Close(), false;
 
 		if (!CN_ASSERT(SetupPort()))
 			return Close(), false;
 
-		if ((dwOption_ & (EN_THREAD|EN_RX_THREAD|EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
+		if ((dwOption_ & (EN_THREAD | EN_RX_THREAD | EN_TX_THREAD)) && !CN_ASSERT(BeginThread()))
 			return Close(), false;
-		
+
 		return true;
 	}
 	//! 直接读物理端口 \param[out] pBuffer 目标缓冲区 \param[in] dwLength 读取长度 \param[in] dwWaitTime 等待时间(默认INFINITE) \return 返回实际读取字节数
@@ -404,14 +404,14 @@ public:
 	{
 		COMSTAT Stat;
 		DWORD	dwError, dwReadResult = 0;
-		
-		if(!CN_ASSERT(IsOpen()) || !dwLength)
+
+		if (!CN_ASSERT(IsOpen()) || !dwLength)
 			return 0;
-		
-		if(::ClearCommError(hComm_, &dwError, &Stat) && dwError > 0)
+
+		if (::ClearCommError(hComm_, &dwError, &Stat) && dwError > 0)
 			::PurgeComm(hComm_, PURGE_RXABORT);
 
-	#ifndef CN_COMM_FOR_CE
+#ifndef CN_COMM_FOR_CE
 		if (IsOverlappedMode())//! 重叠I/O下 dwWaitTime==INFINITE 将等待到自然超时或任务完成 具体时间由超时结构决定 默认设定0.5秒
 		{
 			if (dwWaitTime == INFINITE)//! 如果你没有启用读反冲 直接读取端口将导致阻塞 相当于原来1.3版本 Read(pBuffer, dwLength, false);
@@ -428,7 +428,7 @@ public:
 			else//! 重叠I/O下 dwWaitTime!=INFINITE 将等待到超时或任务完成 具体时间由dwWaitTime决定 
 			{	//! dwWaitTime = 0 相当于原来1.3版本的功能
 				DWORD dwBegin = GetTickCount(), dwEnd, dwCost, uReadLength, uReadReturn;
-				
+
 				uReadLength = Stat.cbInQue > dwLength ? dwLength : Stat.cbInQue;
 				CN_ASSERT(::ReadFile(hComm_, pBuffer, uReadLength, &uReadReturn, &RO_));
 				dwReadResult += uReadReturn;
@@ -440,22 +440,21 @@ public:
 						if (dwWaitTime > 5 && WaitForSingleObject(RO_.hEvent, dwWaitTime) == WAIT_OBJECT_0)
 						{
 							dwEnd = GetTickCount();
-							dwCost = dwEnd>=dwBegin ? dwEnd-dwBegin : DWORD(-1L)-dwBegin+dwEnd;
+							dwCost = dwEnd >= dwBegin ? dwEnd - dwBegin : DWORD(-1L) - dwBegin + dwEnd;
 							CN_ASSERT(::GetOverlappedResult(hComm_, &RO_, &uReadReturn, FALSE));
-							dwWaitTime = dwWaitTime > dwCost ? dwWaitTime-dwCost : 0;
-						} 
+							dwWaitTime = dwWaitTime > dwCost ? dwWaitTime - dwCost : 0;
+						}
 						else
 						{
 							CN_ASSERT(::PurgeComm(hComm_, PURGE_RXABORT));
 							break;
 						}
 					}
-				}
-				while (uReadReturn && ++dwReadResult < dwLength);
+				} while (uReadReturn && ++dwReadResult < dwLength);
 			}
 			return dwInCount_ += dwReadResult, dwReadResult;
 		}
-	#endif
+#endif
 		//! 阻塞I/O和WinCE的I/O下 dwWaitTime无意义 超时时间由超时结构决定 默认设定1/4秒
 		CN_ASSERT(::ReadFile(hComm_, pBuffer, dwLength, &dwReadResult, NULL));
 		return dwInCount_ += dwReadResult, dwReadResult;
@@ -471,11 +470,11 @@ public:
 			return I_.Read(pBuffer, dwLength);
 		}
 
-	#ifdef CN_COMM_FOR_CE
+#ifdef CN_COMM_FOR_CE
 		return ReadPort(pBuffer, dwLength, dwWaitTime);
-	#else
+#else
 		return ReadPort(pBuffer, dwLength, dwWaitTime);
-	#endif
+#endif
 	}
 	//! 读取串口 dwLength - 1 个ANSI字符到 szBuffer 返回 C 模式字符串指针 适合一般字符通讯
 	char * ReadString(char *szBuffer, DWORD dwLength, DWORD dwWaitTime = INFINITE)
@@ -488,32 +487,32 @@ public:
 	wchar_t * ReadString(wchar_t *szBuffer, DWORD dwLength, DWORD dwWaitTime = INFINITE)
 	{
 		CN_ASSERT(szBuffer);
-		szBuffer[(Read(szBuffer, (dwLength - 1)*sizeof(wchar_t), dwWaitTime) +1)/ sizeof(wchar_t)] = L'\0';
+		szBuffer[(Read(szBuffer, (dwLength - 1) * sizeof(wchar_t), dwWaitTime) + 1) / sizeof(wchar_t)] = L'\0';
 		return szBuffer;
 	}
 	//! 直接写入端口
 	DWORD WritePort(LPCVOID pBuffer, DWORD dwLength)
 	{
-		if(!CN_ASSERT(IsOpen()) || !dwLength)
+		if (!CN_ASSERT(IsOpen()) || !dwLength)
 			return 0;
 
 		DWORD dwError;
 		unsigned long uWriteLength = 0;
 
-		if(::ClearCommError(hComm_, &dwError, NULL) && dwError > 0) 
-			::PurgeComm(hComm_, PURGE_TXABORT); 
+		if (::ClearCommError(hComm_, &dwError, NULL) && dwError > 0)
+			::PurgeComm(hComm_, PURGE_TXABORT);
 
-	#ifndef CN_COMM_FOR_CE
+#ifndef CN_COMM_FOR_CE
 		if (IsOverlappedMode())//! 使用重叠IO是返回0，写出计数直接加上待写入长度，即假设写入成功
 		{//! 重叠IO下超时由超时结构控制 默认为长度*1毫秒+10秒
-			if(!::WriteFile(hComm_, pBuffer, dwLength, &uWriteLength, &WO_) 
+			if (!::WriteFile(hComm_, pBuffer, dwLength, &uWriteLength, &WO_)
 				&& !CN_ASSERT(::GetLastError() == ERROR_IO_PENDING))
 				uWriteLength = 0;
 			else
 				dwOutCount_ += dwLength;
 		}
 		else
-	#endif //! 使用阻塞IO或WINCE下是返回实际写入长度，写出计数直接加上实际写入长度, 超时默认1/4秒
+#endif //! 使用阻塞IO或WINCE下是返回实际写入长度，写出计数直接加上实际写入长度, 超时默认1/4秒
 			::WriteFile(hComm_, pBuffer, dwLength, &uWriteLength, NULL), dwOutCount_ += uWriteLength;
 
 		return uWriteLength;
@@ -531,37 +530,37 @@ public:
 				SetEvent(hWatchEvent_);
 			else
 			{
-			#ifdef CN_COMM_FOR_CE
+#ifdef CN_COMM_FOR_CE
 				SetCommMask(hComm_, dwWaitEvent_);
-			#else
+#else
 				if (IsOverlappedMode())
 					SetCommMask(hComm_, dwWaitEvent_);
 				else
 					SetEvent(hWatchEvent_);
-			#endif
+#endif
 			}
 			return 0;
 		}
-			
-	#ifdef CN_COMM_FOR_CE
+
+#ifdef CN_COMM_FOR_CE
 		return WritePort(pBuffer, dwLength);
-	#else
+#else
 		return WritePort(pBuffer, dwLength);
-	#endif
+#endif
 	}
 	//! 写串口 ANSI字符 写ANSI C 模式字符串指针 
 	DWORD Write(const char *szBuffer)
 	{
 		CN_ASSERT(szBuffer);
-		
+
 		return Write((LPCVOID)szBuffer, strlen(szBuffer));
 	}
 	//! 写串口 UNICODE字符 写ANSI C 模式字符串指针 
 	DWORD Write(const wchar_t *szBuffer)
 	{
 		CN_ASSERT(szBuffer);
-		
-		return Write((LPCVOID)szBuffer, wcslen(szBuffer)*sizeof(wchar_t));
+
+		return Write((LPCVOID)szBuffer, wcslen(szBuffer) * sizeof(wchar_t));
 	}
 	//! 写串口 szBuffer 可以输出格式字符串 包含缓冲区长度
 	DWORD Write(char *szBuffer, DWORD dwLength, char * szFormat, ...)
@@ -570,7 +569,7 @@ public:
 		va_start(va, szFormat);
 		_vsnprintf(szBuffer, dwLength, szFormat, va);
 		va_end(va);
-		
+
 		return Write(szBuffer);
 	}
 	//! 写串口 UNICODE szBuffer 可以输出格式字符串 包含缓冲区长度
@@ -580,7 +579,7 @@ public:
 		va_start(va, szFormat);
 		_vsnwprintf(szBuffer, dwLength, szFormat, va);
 		va_end(va);
-		
+
 		return Write(szBuffer);
 	}
 	//! 写串口 szBuffer 可以输出格式字符串 不检查缓冲区长度 小心溢出
@@ -590,7 +589,7 @@ public:
 		va_start(va, szFormat);
 		vsprintf(szBuffer, szFormat, va);
 		va_end(va);
-		
+
 		return Write(szBuffer);
 	}
 	//! 写串口 szBuffer 可以输出格式字符串 不检查缓冲区长度 小心溢出
@@ -600,23 +599,23 @@ public:
 		va_start(va, szFormat);
 		vswprintf(szBuffer, szFormat, va);
 		va_end(va);
-		
+
 		return Write(szBuffer);
 	}
 	//! 强制输出队列内数据并等待
 	void FlushPort()
 	{
-		if(CN_ASSERT(IsOpen()))
+		if (CN_ASSERT(IsOpen()))
 			FlushFileBuffers(hComm_);
 	}
 	//! 强制输出写缓冲区并强制输出队列内数据并等待
 	void Flush()
 	{
-		if(CN_ASSERT(IsOpen()))
+		if (CN_ASSERT(IsOpen()))
 		{
 			if (dwOption_ & EN_TX_BUFFER)
 			{
-				while(O_.SafeSize())
+				while (O_.SafeSize())
 					Sleep(50);
 			}
 
@@ -635,19 +634,19 @@ public:
 		return false;
 	}
 	//! 启动辅助线程控制 
-	bool BeginThread(DWORD dwThreadOption = 0) 
+	bool BeginThread(DWORD dwThreadOption = 0)
 	{
 		DWORD dwCreationFlags;
 
-		if(CN_ASSERT(!hWatchThread_ && !hReadThread_ && !hWriteThread_)) 
+		if (CN_ASSERT(!hWatchThread_ && !hReadThread_ && !hWriteThread_))
 		{//! 必须是没有线程在运行状态下才可以启动线程
-			bContinue_		= true;
-			dwCreationFlags	= dwOption_ & EN_SUSPEND ? CREATE_SUSPENDED : 0;
+			bContinue_ = true;
+			dwCreationFlags = dwOption_ & EN_SUSPEND ? CREATE_SUSPENDED : 0;
 
 			if (dwThreadOption)//! 根据配置创建监视线程，独立读或写线程
 				dwOption_ |= dwThreadOption;
-			
-		#if defined(_MT) && !defined(CN_COMM_FOR_CE)
+
+#if defined(_MT) && !defined(CN_COMM_FOR_CE)
 			unsigned int id, rid, wid;
 
 			if (dwOption_ & EN_THREAD)
@@ -658,18 +657,18 @@ public:
 
 			if (dwOption_ & EN_TX_THREAD)
 				hWriteThread_ = (HANDLE)_beginthreadex(NULL, 0, WriteThreadProc, this, dwCreationFlags, &wid);
-		#else
+#else
 			DWORD id, rid, wid;
 
 			if (dwOption_ & EN_THREAD)
-				hWatchThread_ = ::CreateThread(NULL, 0, WatchThreadProc, this, dwCreationFlags , &id); 
+				hWatchThread_ = ::CreateThread(NULL, 0, WatchThreadProc, this, dwCreationFlags, &id);
 
 			if (dwOption_ & EN_RX_THREAD)
-				hReadThread_ = ::CreateThread(NULL, 0, ReadThreadProc, this, dwCreationFlags, &rid); 
+				hReadThread_ = ::CreateThread(NULL, 0, ReadThreadProc, this, dwCreationFlags, &rid);
 
 			if (dwOption_ & EN_TX_THREAD)
-				hWriteThread_ = ::CreateThread(NULL, 0, WriteThreadProc, this, dwCreationFlags, &wid); 
-		#endif
+				hWriteThread_ = ::CreateThread(NULL, 0, WriteThreadProc, this, dwCreationFlags, &wid);
+#endif
 
 			if (dwOption_ & EN_THREAD)
 			{
@@ -691,7 +690,7 @@ public:
 			if (dwOption_ & EN_RX_THREAD)
 			{
 				CN_ASSERT(hReadThread_ != NULL);
-				hReadThreadId_	= rid;
+				hReadThreadId_ = rid;
 
 				if (!hReadThreadId_)
 				{
@@ -708,7 +707,7 @@ public:
 			if (dwOption_ & EN_TX_THREAD)
 			{
 				CN_ASSERT(hWriteThread_ != NULL);
-				hWriteThreadId_	= wid;
+				hWriteThreadId_ = wid;
 
 				if (!hWriteThreadId_)
 				{
@@ -722,7 +721,7 @@ public:
 				}
 			}
 
-			return true; 
+			return true;
 		}
 
 		return false;
@@ -740,28 +739,28 @@ public:
 	//! 终止线程
 	bool EndThread(DWORD dwWaitTime = 500)
 	{
-		if(hWatchThread_ || hReadThread_ || hWriteThread_) 
+		if (hWatchThread_ || hReadThread_ || hWriteThread_)
 		{
 			if ((dwOption_&EN_FLUSH_ALL) && (dwOption_&EN_TX_BUFFER))
 			{//! 如果启用EN_FLUSH_ALL，将循环等待写缓冲区清空，如果写入线程不能正常工作，将挂起
-				while(O_.Size())
+				while (O_.Size())
 					Sleep(50);
 			}
 
 			bContinue_ = false;
 
-		#ifdef CN_COMM_FOR_CE
+#ifdef CN_COMM_FOR_CE
 			::SetCommMask(hComm_, 0);
-		#else
+#else
 			if (IsOverlappedMode())
 				::SetCommMask(hComm_, 0);
-		#endif
+#endif
 
 			if (hWatchThread_)
 			{
 				SetEvent(hWatchEvent_);
-				if(::WaitForSingleObject(hWatchThread_, dwWaitTime) != WAIT_OBJECT_0)
-					if(!::TerminateThread(hWatchThread_, 0))
+				if (::WaitForSingleObject(hWatchThread_, dwWaitTime) != WAIT_OBJECT_0)
+					if (!::TerminateThread(hWatchThread_, 0))
 						return false;
 
 				::CloseHandle(hWatchThread_);
@@ -771,25 +770,25 @@ public:
 			if (hReadThread_)
 			{
 				SetEvent(hReadEvent_);
-				if(::WaitForSingleObject(hReadThread_, dwWaitTime) != WAIT_OBJECT_0)
-					if(!::TerminateThread(hReadThread_, 0))
+				if (::WaitForSingleObject(hReadThread_, dwWaitTime) != WAIT_OBJECT_0)
+					if (!::TerminateThread(hReadThread_, 0))
 						return false;
 
 				::CloseHandle(hReadThread_);
 				hReadThread_ = NULL;
 			}
-			
+
 			if (hWriteThread_)
 			{
 				SetEvent(hWriteEvent_);
-				if(::WaitForSingleObject(hWriteThread_, dwWaitTime) != WAIT_OBJECT_0)
-					if(!::TerminateThread(hWriteThread_, 0))
+				if (::WaitForSingleObject(hWriteThread_, dwWaitTime) != WAIT_OBJECT_0)
+					if (!::TerminateThread(hWriteThread_, 0))
 						return false;
 
 				::CloseHandle(hWriteThread_);
 				hWriteThread_ = NULL;
 			}
-				
+
 			return true;
 		}
 
@@ -798,41 +797,41 @@ public:
 	//! 关闭串口 同时也关闭关联线程
 	virtual void Close(DWORD dwWaitTime = 500)
 	{
-		if(IsOpen())  
+		if (IsOpen())
 		{
 			EndThread(dwWaitTime);//! 同步结束线程
 
 			if (dwOption_&EN_FLUSH || dwOption_&EN_FLUSH_ALL)
 				FlushFileBuffers(hComm_);
 
-			::PurgeComm(hComm_, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR | PURGE_RXABORT); 
+			::PurgeComm(hComm_, PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR | PURGE_RXABORT);
 			::CloseHandle(hComm_);
 			hComm_ = INVALID_HANDLE_VALUE;
 		}
 	}
 	//! 锁定
-	void Lock()							
-	{	
-		::EnterCriticalSection(&CS_);		
+	void Lock()
+	{
+		::EnterCriticalSection(&CS_);
 	}
 	//! 解锁
-	void Unlock()						
-	{	
-		::LeaveCriticalSection(&CS_);		
+	void Unlock()
+	{
+		::LeaveCriticalSection(&CS_);
 	}
 	//! 自动锁 用于函数内部 利用对象的生命周期完成锁定及解锁
 	struct InnerLock
 	{
 		CnComm* ptr;//!< CnComm 对象指针
 		//! 锁定
-		InnerLock(CnComm* p) : ptr(p)	
-		{	
-			ptr->Lock();						
+		InnerLock(CnComm* p) : ptr(p)
+		{
+			ptr->Lock();
 		}
 		//! 解锁
-		~InnerLock()					
-		{	
-			ptr->Unlock();						
+		~InnerLock()
+		{
+			ptr->Unlock();
 		}
 	};
 	//! 获得串口参数 DCB
@@ -848,16 +847,16 @@ public:
 	//! 设置串口参数：波特率，停止位，等 ***
 	bool SetState(DWORD dwBaudRate, BYTE btParity = NOPARITY, BYTE btByteSize = 8, BYTE btStopBits = ONESTOPBIT)
 	{
-		if(CN_ASSERT(IsOpen()))
+		if (CN_ASSERT(IsOpen()))
 		{
-			if(::GetCommState(hComm_, &DCB_) != TRUE)
+			if (::GetCommState(hComm_, &DCB_) != TRUE)
 				return false;
 
 			DCB_.BaudRate = dwBaudRate;
 			DCB_.ByteSize = btByteSize;
-			DCB_.Parity   = btParity;
+			DCB_.Parity = btParity;
 			DCB_.StopBits = btStopBits;
-			DCB_.fParity  = (btParity != NOPARITY);
+			DCB_.fParity = (btParity != NOPARITY);
 
 			return ::SetCommState(hComm_, &DCB_) == TRUE;
 		}
@@ -865,17 +864,17 @@ public:
 	}
 #ifndef CN_COMM_FOR_CE
 	//! 设置串口参数 支持设置字符串 "9600, n, 8, 1"
-	bool SetState(LPCTSTR szSetStr) 
+	bool SetState(LPCTSTR szSetStr)
 	{
-		if(CN_ASSERT(IsOpen()))
+		if (CN_ASSERT(IsOpen()))
 		{
-			if(!::GetCommState(hComm_, &DCB_))
+			if (!::GetCommState(hComm_, &DCB_))
 				return false;
 
-			if(!BuildCommDCB(szSetStr, &DCB_))
+			if (!BuildCommDCB(szSetStr, &DCB_))
 				return false;
 
-			DCB_.fParity  = (DCB_.Parity != NOPARITY);
+			DCB_.fParity = (DCB_.Parity != NOPARITY);
 			return ::SetCommState(hComm_, &DCB_) == TRUE;
 		}
 
@@ -885,7 +884,7 @@ public:
 	//! 获得超时结构
 	LPCOMMTIMEOUTS GetTimeouts(LPCOMMTIMEOUTS lpCO = NULL)
 	{
-		return CN_ASSERT(IsOpen()) && ::GetCommTimeouts(hComm_, lpCO ? lpCO : &CO_) == TRUE  ? (lpCO ? lpCO : &CO_) : NULL;
+		return CN_ASSERT(IsOpen()) && ::GetCommTimeouts(hComm_, lpCO ? lpCO : &CO_) == TRUE ? (lpCO ? lpCO : &CO_) : NULL;
 	}
 	//! 设置超时
 	bool SetTimeouts(LPCOMMTIMEOUTS lpCO = NULL)
@@ -895,7 +894,7 @@ public:
 	//! 设置串口的I/O缓冲区大小
 	bool Setup(DWORD dwInputSize = 4096, DWORD dwOutputSize = 4096)
 	{
-		return CN_ASSERT(IsOpen()) ? ::SetupComm(hComm_, dwInputSize, dwOutputSize) == TRUE : false; 
+		return CN_ASSERT(IsOpen()) ? ::SetupComm(hComm_, dwInputSize, dwOutputSize) == TRUE : false;
 	}
 	//! 调整端口功能
 	bool Escape(DWORD dwType)
@@ -909,17 +908,17 @@ public:
 		return CN_ASSERT(IsOpen()) && GetCommModemStatus(hComm_, &dwModemStat) ? dwModemStat : 0;
 	}
 	//! 获得端口参数 \param[in] pCP 结构指针 如果pCP==NULL, CnComm将从堆分配内存, 并由CnComm负责释放, 用户不需要自己释放内存
-	LPCOMMPROP GetProperties(LPCOMMPROP pCP = NULL)	
+	LPCOMMPROP GetProperties(LPCOMMPROP pCP = NULL)
 	{
 		if (CN_ASSERT(IsOpen()))
 		{
 			if (!pCP)
 			{
-			#ifdef CN_COMM_FOR_CE
+#ifdef CN_COMM_FOR_CE
 				USHORT dwSize = sizeof(COMMPROP);
-			#else
+#else
 				USHORT dwSize = sizeof(COMMPROP) + sizeof(MODEMDEVCAPS);
-			#endif
+#endif
 
 				if (!pCP_)
 					pCP_ = (LPCOMMPROP) new BYTE[dwSize];
@@ -929,10 +928,10 @@ public:
 					memset(pCP_, 0, dwSize);
 
 					pCP_->wPacketLength = dwSize;
-				#ifndef CN_COMM_FOR_CE
+#ifndef CN_COMM_FOR_CE
 					pCP_->dwProvSubType = PST_MODEM;
-				#endif
-					pCP_->dwProvSpec1	= COMMPROP_INITIALIZED;
+#endif
+					pCP_->dwProvSpec1 = COMMPROP_INITIALIZED;
 					pCP = pCP_;
 				}
 			}
@@ -944,12 +943,12 @@ public:
 	DWORD GetMask()
 	{
 		DWORD dwMask;
-		return CN_ASSERT(IsOpen()) && GetCommMask(hComm_, &dwMask) ? dwMask : 0;	
+		return CN_ASSERT(IsOpen()) && GetCommMask(hComm_, &dwMask) ? dwMask : 0;
 	}
 	//! 清除端口缓冲区
 	bool Purge(DWORD dwPara = PURGE_TXABORT | PURGE_TXCLEAR | PURGE_RXABORT | PURGE_RXCLEAR)
 	{
-		return CN_ASSERT(IsOpen()) ? ::PurgeComm(hComm_, dwPara)==TRUE : false;
+		return CN_ASSERT(IsOpen()) ? ::PurgeComm(hComm_, dwPara) == TRUE : false;
 	}
 	//! 获得错误代码
 	DWORD ClearError()
@@ -962,55 +961,55 @@ public:
 	{
 		COMSTAT Stat;
 		DWORD dwError;
-		
+
 		return CN_ASSERT(IsOpen()) && ::ClearCommError(hComm_, &dwError, &Stat) ? (bInput ? Stat.cbInQue : Stat.cbOutQue) : (DWORD)-1L;
 	}
 	//! 调制解调器 CTS ON
-	bool CheckCTS()				
-	{	
-		return (GetModemStatus()&MS_CTS_ON) != 0;		
+	bool CheckCTS()
+	{
+		return (GetModemStatus()&MS_CTS_ON) != 0;
 	}
 	//! 调制解调器 DSR ON
-	bool CheckDSR()				
-	{	
-		return (GetModemStatus()&MS_DSR_ON) != 0;		
+	bool CheckDSR()
+	{
+		return (GetModemStatus()&MS_DSR_ON) != 0;
 	}
 	//! 调制解调器 Ring ON
-	bool CheckRING()				
-	{	
-		return (GetModemStatus()&MS_RING_ON) != 0;		
+	bool CheckRING()
+	{
+		return (GetModemStatus()&MS_RING_ON) != 0;
 	}
 	//! 调制解调器 RLSD ON
-	bool CheckRLSD()				
-	{	
-		return (GetModemStatus()&MS_RLSD_ON) != 0;		
+	bool CheckRLSD()
+	{
+		return (GetModemStatus()&MS_RLSD_ON) != 0;
 	}
 	//! DTR 电平控制
-	bool SetDTR(bool bSetOrClr = true)	
-	{	
-		return Escape(bSetOrClr ? SETDTR : CLRDTR);		
+	bool SetDTR(bool bSetOrClr = true)
+	{
+		return Escape(bSetOrClr ? SETDTR : CLRDTR);
 	}
 	//! RTS 电平控制
-	bool SetRTS(bool bSetOrClr = true)	
-	{	
-		return Escape(bSetOrClr ? SETRTS : CLRRTS);		
+	bool SetRTS(bool bSetOrClr = true)
+	{
+		return Escape(bSetOrClr ? SETRTS : CLRRTS);
 	}
 	//! 调制解调器
-	bool SetBreak(bool bSetOrClr = true)	
-	{	
-		return Escape(bSetOrClr ? SETBREAK : CLRBREAK);	
+	bool SetBreak(bool bSetOrClr = true)
+	{
+		return Escape(bSetOrClr ? SETBREAK : CLRBREAK);
 	}
 #ifdef CN_COMM_FOR_CE
 	//! WINCE
-	bool SetIR(bool bSetOrClr)	
-	{	
-		return Escape(bSetOrClr ? SETIR : CLRIR);	
+	bool SetIR(bool bSetOrClr)
+	{
+		return Escape(bSetOrClr ? SETIR : CLRIR);
 	}
 #endif
 	//! 流控制 SETXON SETXOFF
-	bool SetX(bool bOnOrOff)				
-	{	
-		return Escape(bOnOrOff ? SETXON : SETXOFF);							
+	bool SetX(bool bOnOrOff)
+	{
+		return Escape(bOnOrOff ? SETXON : SETXOFF);
 	}
 	//! 根据通讯特点开发的缓冲区类 单向链表内存块 有一些扩展以支持和API挂接 
 	class BlockBuffer
@@ -1024,21 +1023,21 @@ public:
 			DWORD			S_;		//!< 块大小 内存块最大值不限 内存块最小值由CN_COMM_BUFFER_MIN_BLOCK_SIZE决定 
 			Block*			N_;		//!< 下一个块指针 
 			BYTE			P_[4];	//!< 缓冲区指针 实际大小由S_决定 
-		
+
 			//! 容量
-			DWORD Capacity()		{	return S_;			}
+			DWORD Capacity() { return S_; }
 			//! 实际大小
-			DWORD Size()			{	return E_ - B_;		}
+			DWORD Size() { return E_ - B_; }
 			//! 开始缓冲区指针
-			BYTE* Begin()			{	return P_ + B_;		}
+			BYTE* Begin() { return P_ + B_; }
 			//! 末端缓冲区指针
-			BYTE* End()				{	return P_ + E_;		}
+			BYTE* End() { return P_ + E_; }
 			//! 下一个块
-			Block* Next()			{	return N_;			}
+			Block* Next() { return N_; }
 			//! 是否空
-			bool IsEmpty()			{	return B_ == E_;	}
+			bool IsEmpty() { return B_ == E_; }
 			//! 空闲大小
-			DWORD FreeSize()		{	return S_ - E_;		}
+			DWORD FreeSize() { return S_ - E_; }
 		};
 
 		//! 用于缓冲区单向迭代子
@@ -1050,45 +1049,45 @@ public:
 			DWORD			O_;		//!< 全缓冲区偏移
 
 			//! 构造
-			Iterator(BlockBuffer *P = NULL, Block* B = NULL, DWORD I = 0, DWORD O = 0) 
-				: P_(P), B_(B), I_(I), O_(O)	
-			{										
+			Iterator(BlockBuffer *P = NULL, Block* B = NULL, DWORD I = 0, DWORD O = 0)
+				: P_(P), B_(B), I_(I), O_(O)
+			{
 			}
 			//! 是否有效
-			operator bool()				
-			{	
-				return B_ && I_<B_->E_&&I_>=B_->B_;	
+			operator bool()
+			{
+				return B_ && I_ < B_->E_&&I_ >= B_->B_;
 			}
 			//! 是否可写
-			bool CanWrite()				
-			{	
-				return B_ && I_ < B_->S_;			
+			bool CanWrite()
+			{
+				return B_ && I_ < B_->S_;
 			}
 			//! 取值引用
-			BYTE& operator *()			
-			{	
-				CN_ASSERT( P_ && B_ && I_<B_->E_&&I_>=B_->B_);
-				return B_->P_[I_];					
+			BYTE& operator *()
+			{
+				CN_ASSERT(P_ && B_ && I_ < B_->E_&&I_ >= B_->B_);
+				return B_->P_[I_];
 			}
 			//! 移动迭代子 ++Iter;
-			Iterator& operator ++ ()		
+			Iterator& operator ++ ()
 			{
-				return operator +=(1);			
+				return operator +=(1);
 			}
 			//! 移动迭代子 Iter++;
-			Iterator& operator ++ (int)	
+			Iterator& operator ++ (int)
 			{
-				return operator +=(1);				
+				return operator +=(1);
 			}
 			//! 移动迭代子  \param dwOffset 为偏移量
 			Iterator& operator += (DWORD dwOffset)
 			{
-				while (dwOffset) 
+				while (dwOffset)
 				{
-					if (I_+dwOffset < B_->E_)
-						I_ += dwOffset, O_ += dwOffset, dwOffset = 0; 
+					if (I_ + dwOffset < B_->E_)
+						I_ += dwOffset, O_ += dwOffset, dwOffset = 0;
 					else
-						dwOffset -= B_->E_-I_, I_ += B_->E_-I_, O_ += B_->E_-I_, B_ = B_->N_, I_ = 0;
+						dwOffset -= B_->E_ - I_, I_ += B_->E_ - I_, O_ += B_->E_ - I_, B_ = B_->N_, I_ = 0;
 				}
 
 				return *this;
@@ -1102,30 +1101,30 @@ public:
 		//! 友元
 		friend struct Iterator;
 		//! 锁定
-		void Lock()							
-		{	
-			::EnterCriticalSection(&C_);			
+		void Lock()
+		{
+			::EnterCriticalSection(&C_);
 		}
 		//! 解锁
-		void Unlock()						
-		{	
-			::LeaveCriticalSection(&C_);			
+		void Unlock()
+		{
+			::LeaveCriticalSection(&C_);
 		}
 		//! 自动锁
 		struct InnerLock
 		{
 			BlockBuffer* ptr;//!<对象指针
 			///锁定
-			InnerLock(BlockBuffer* p) : ptr(p)	
+			InnerLock(BlockBuffer* p) : ptr(p)
 			{
 				if (ptr)
-					ptr->Lock();						
+					ptr->Lock();
 			}
 			///解锁
-			~InnerLock()					
+			~InnerLock()
 			{
 				if (ptr)
-					ptr->Unlock();						
+					ptr->Unlock();
 			}
 		};
 		//! 构造
@@ -1141,9 +1140,9 @@ public:
 			::DeleteCriticalSection(&C_);
 		}
 		//! 获得起始迭代子
-		Iterator Begin()					
-		{	
-			return Iterator(this, F_, F_? F_->B_ : 0, 0);	
+		Iterator Begin()
+		{
+			return Iterator(this, F_, F_ ? F_->B_ : 0, 0);
 		}
 		//! 设置块的最小长度
 		void SetMinBlockSize(DWORD dwMinSize)
@@ -1156,15 +1155,15 @@ public:
 			return M_;
 		}
 		//! 缓冲区内数据字节数
-		DWORD Size()						
-		{	
-			return S_;								
+		DWORD Size()
+		{
+			return S_;
 		}
 		//! 缓冲区大小
-		DWORD SafeSize()						
+		DWORD SafeSize()
 		{
 			InnerLock lock(this);
-			return S_;								
+			return S_;
 		}
 		//! 写入ANSI字符串缓冲区 \sa Write(LPCVOID lpBuf, DWORD dwSize)
 		DWORD Write(const char* lpBuf)
@@ -1174,13 +1173,13 @@ public:
 		//! 写入UNICODE字符串缓冲区 \sa Write(LPCVOID lpBuf, DWORD dwSize)
 		DWORD Write(const wchar_t* lpBuf)
 		{
-			return Write(lpBuf, wcslen(lpBuf)*sizeof(wchar_t));
+			return Write(lpBuf, wcslen(lpBuf) * sizeof(wchar_t));
 		}
 		//! 写入缓冲区 \param[out] lpBuf 目标缓冲区 \param[in] dwSize 数据字节数 \return 实际复制数据字节数
 		DWORD Write(LPCVOID lpBuf, DWORD dwSize)
 		{
 			DWORD dwTemp = dwSize, dwFree = FreeSize(), dwCopy = 0;
-			
+
 			if (dwFree)//! 首先查找末尾空闲，并写入数据
 			{
 				dwCopy = dwFree > dwSize ? dwSize : dwFree;
@@ -1190,7 +1189,7 @@ public:
 
 			if (dwTemp)//! 剩余的数据分配新的空间并写入
 			{
-				memcpy(NewBlock(dwSize)->P_, ((LPBYTE)lpBuf )+ dwCopy, dwTemp);
+				memcpy(NewBlock(dwSize)->P_, ((LPBYTE)lpBuf) + dwCopy, dwTemp);
 				L_->E_ += dwTemp;
 			}
 
@@ -1213,7 +1212,7 @@ public:
 		DWORD SafeWrite(const wchar_t* lpBuf)
 		{
 			InnerLock lock(this);
-			return Write(lpBuf, wcslen(lpBuf)*sizeof(wchar_t));
+			return Write(lpBuf, wcslen(lpBuf) * sizeof(wchar_t));
 		}
 		//! 复制数据 \param[out] lpBuf 目标缓冲区 \param[in] dwSize 数据字节数 \param[in] dwStart 源缓冲区开始偏移值 \return 实际复制数据字节数
 		DWORD Copy(LPVOID lpBuf, DWORD dwSize, DWORD dwStart = 0)
@@ -1241,13 +1240,13 @@ public:
 			{
 				if (dwSize - dwTemp < pCur->E_ - dwIndex)
 				{
-					memcpy((LPBYTE)lpBuf+dwTemp, pCur->P_ + dwIndex, dwSize - dwTemp );
+					memcpy((LPBYTE)lpBuf + dwTemp, pCur->P_ + dwIndex, dwSize - dwTemp);
 					dwTemp = dwSize;
 					break;
 				}
 				else
 				{
-					memcpy((LPBYTE)lpBuf+dwTemp, pCur->P_ + dwIndex, pCur->E_ - dwIndex);
+					memcpy((LPBYTE)lpBuf + dwTemp, pCur->P_ + dwIndex, pCur->E_ - dwIndex);
 					dwTemp += pCur->E_ - dwIndex;
 				}
 			}
@@ -1266,23 +1265,23 @@ public:
 		{
 			DWORD dwTemp = 0, dwCopy;
 
-			for (Block * pCur = F_, *pNext = NULL; dwTemp<dwSize && pCur; pCur = pNext)
+			for (Block * pCur = F_, *pNext = NULL; dwTemp < dwSize && pCur; pCur = pNext)
 			{
-				if (dwSize-dwTemp > pCur->E_-pCur->B_ )
-					dwCopy = pCur->E_ - pCur->B_; 
+				if (dwSize - dwTemp > pCur->E_ - pCur->B_)
+					dwCopy = pCur->E_ - pCur->B_;
 				else
 					dwCopy = dwSize - dwTemp;
 
-				if (lpBuf) 
-					memcpy((LPBYTE)lpBuf+dwTemp, pCur->P_ + pCur->B_, dwCopy);
+				if (lpBuf)
+					memcpy((LPBYTE)lpBuf + dwTemp, pCur->P_ + pCur->B_, dwCopy);
 
 				pNext = pCur->N_, dwTemp += dwCopy;
 
-				if (dwCopy == pCur->E_-pCur->B_)
+				if (dwCopy == pCur->E_ - pCur->B_)
 				{//! 删除回收完全空闲块, 当一般保留1个块, 在小于4*CN_COMM_BUFFER_MIN_BLOCK_SIZE的情况下 
-					if (pNext || pCur->S_>(M_<<2))
+					if (pNext || pCur->S_ > (M_ << 2))
 					{
-						delete[] (BYTE*)pCur;
+						delete[](BYTE*)pCur;
 						F_ = pNext;
 						if (!F_)
 							L_ = NULL;
@@ -1307,7 +1306,7 @@ public:
 		//! 读入UNICODE字符串缓冲区
 		wchar_t* ReadString(wchar_t* lpBuf, DWORD dMaxSize)
 		{
-			lpBuf[(Read(lpBuf, dMaxSize*sizeof(wchar_t))+1) / sizeof(wchar_t)] = L'\0';
+			lpBuf[(Read(lpBuf, dMaxSize * sizeof(wchar_t)) + 1) / sizeof(wchar_t)] = L'\0';
 			return lpBuf;
 		}
 		//! 线程安全的读函数
@@ -1331,14 +1330,14 @@ public:
 		//! 清除 \param bDeleteAll 为true时释放所有内存, 否则保留一个内存块以提高效率
 		void Clear(bool bDeleteAll = false)
 		{
-			if (F_ && (F_==L_) && F_->S_>(M_<<2))
+			if (F_ && (F_ == L_) && F_->S_ > (M_ << 2))
 			{
-                DWORD S = F_->S_;
-                memset(F_, 0, sizeof(Block)), F_->S_ = S;
-            }
+				DWORD S = F_->S_;
+				memset(F_, 0, sizeof(Block)), F_->S_ = S;
+			}
 			else
 			{
-				for (Block* t = F_;  t; delete  F_)
+				for (Block* t = F_; t; delete F_)
 					F_ = t, t = t->N_;
 
 				F_ = L_ = NULL, S_ = 0;
@@ -1351,14 +1350,14 @@ public:
 			Clear(bDeleteAll);
 		}
 		//! 获得内存块指针 \param bFirst 为true时获得链表头部指针否则获得链表尾部指针
-		Block* GetBlockPtr(bool bFirst = true)	
-		{	
-			return bFirst ? F_ : L_;						
+		Block* GetBlockPtr(bool bFirst = true)
+		{
+			return bFirst ? F_ : L_;
 		}
 		//! 缓冲区尾部的空闲空间
-		DWORD FreeSize()					
-		{	
-			return L_ ? L_->S_-L_->E_ : 0 ;			
+		DWORD FreeSize()
+		{
+			return L_ ? L_->S_ - L_->E_ : 0;
 		}
 		//! 获得供API插入数据的直写缓冲区 传入所需大小dwSize 空闲不足分配新块 传入0返回尾部的空闲指针 尾部无空闲返回NULL 
 		LPVOID GetFreePtr(DWORD dwSize = 0)
@@ -1374,7 +1373,7 @@ public:
 		//! 利用API直接写入用GetFreePtr()获得空闲指针, 同步调整缓冲区大小 
 		DWORD Release(DWORD dwSize)
 		{
-			return (dwSize <= L_->S_) ? (L_->E_ += dwSize, S_ += dwSize, dwSize) : 0;		
+			return (dwSize <= L_->S_) ? (L_->E_ += dwSize, S_ += dwSize, dwSize) : 0;
 		}
 		//! 获得第一个有效块的缓冲区指针
 		LPVOID GetPtr()
@@ -1391,12 +1390,12 @@ public:
 		{
 			CN_ASSERT(F_);
 
-			if (F_ == L_)	
+			if (F_ == L_)
 			{
 				CN_ASSERT(F_->S_ > dwOffset);
 				return F_->P_[dwOffset];
 			}
-			else			
+			else
 			{
 				Iterator iter = Begin();
 				iter += dwOffset;
@@ -1404,7 +1403,7 @@ public:
 				return *iter;
 			}
 		}
-		
+
 	protected:
 
 		//! 新建块 自动添加在尾部
@@ -1423,7 +1422,7 @@ public:
 				else
 					F_ = L_ = pNew;
 			}
-			
+
 			return pNew;
 		}
 
@@ -1445,19 +1444,19 @@ public:
 		{
 			lstrcpy(szMsg_, szMsg);
 
-		#ifdef _DEBUG
+#ifdef _DEBUG
 			CException::m_bReadyForDelete = TRUE;
-		#endif
+#endif
 		}
 		//! 错误提示信息
-		BOOL GetErrorMessage( LPTSTR lpszError, UINT nMaxError, PUINT pnHelpContext = NULL )
+		BOOL GetErrorMessage(LPTSTR lpszError, UINT nMaxError, PUINT pnHelpContext = NULL)
 		{
-		#ifndef CN_COMM_FOR_CE
+#ifndef CN_COMM_FOR_CE
 			lstrcpyn(lpszError, szMsg_, nMaxError);
-		#else
+#else
 			_tcsncpy(lpszError, szMsg_, nMaxError - 1);
 			lpszError[nMaxError - 1] = _T('\0');
-		#endif
+#endif
 			return TRUE;
 		}
 	protected:
@@ -1468,13 +1467,14 @@ public:
 	//! 用户启用异常 则抛出异常; 未启用异常: DEBUG版本 控制台版本输出错误信息 并退出; Release版本弹出提示框并响应用户要求
 	static bool Assert(LPCTSTR szMessage)
 	{
-	#if defined(_DEBUG) || defined(CN_COMM_STD_EXCEPTION) || defined(CN_COMM_VCL_EXCEPTION) || defined(CN_COMM_MFC_EXCEPTION)
 		TCHAR szMsg[256];
 		DWORD dwError, dwLength;
-		
-		_tcscpy(szMsg, szMessage);
-
 		dwError = GetLastError();
+#if defined(_DEBUG) || defined(CN_COMM_STD_EXCEPTION) || defined(CN_COMM_VCL_EXCEPTION) || defined(CN_COMM_MFC_EXCEPTION)		
+		_tcscpy(szMsg, szMessage);	//附加代码描述
+#else 
+		;// Release版本 什么都不做  预留				
+#endif
 		if (dwError)//! 错误代码(GetLastError())不为 0 输出错误描述  
 		{
 			dwLength = _tcslen(szMsg);
@@ -1486,66 +1486,64 @@ public:
 				NULL,
 				dwError,
 				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),	//! 错误描述采用本地语言
-				szMsg + dwLength - 1,							
-				256 - dwLength - 1,									
+				szMsg + dwLength - 1,
+				256 - dwLength - 1,
 				NULL
-				);
+			);
 		}
-	#else 
-		;// Release版本 什么都不做  预留
-	#endif
 
-	#if	defined(CN_COMM_STD_EXCEPTION)
 
-		#ifdef _UNICODE
-			char szTemp[512] = {0};
-			WideCharToMultiByte(CP_ACP, 0, szMsg, -1, szTemp, wcslen(szMsg)*sizeof(wchar_t), NULL, NULL);
-			throw std::runtime_error(szTemp);
-		#else
-			throw std::runtime_error(szMsg);
-		#endif
+#if	defined(CN_COMM_STD_EXCEPTION)
 
-	#elif defined(CN_COMM_VCL_EXCEPTION)
+#ifdef _UNICODE
+		char szTemp[512] = { 0 };
+		WideCharToMultiByte(CP_ACP, 0, szMsg, -1, szTemp, wcslen(szMsg) * sizeof(wchar_t), NULL, NULL);
+		throw std::runtime_error(szTemp);
+#else
+		throw std::runtime_error(szMsg);
+#endif
+
+#elif defined(CN_COMM_VCL_EXCEPTION)
 
 		throw Exception(szMsg);
 
-	#elif defined(CN_COMM_MFC_EXCEPTION)
+#elif defined(CN_COMM_MFC_EXCEPTION)
 
 		throw (new MfcException(szMsg));
 
-	#elif defined(_DEBUG)
+#elif defined(_DEBUG)
 
 		OutputDebugString(szMsg);
-		#ifdef _CONSOLE
-			// 需要 setlocale(LC_ALL, "chs"); 控制台才可以正确输出UNICODE中文 这里转换ANSI 避免这样问题
-			#ifdef _UNICODE
-				char szTemp[512] = {0};
-				WideCharToMultiByte(CP_ACP, 0, szMsg, -1, szTemp, wcslen(szMsg)*sizeof(wchar_t), NULL, NULL);
-				fprintf(stderr, szTemp);
-			#else
-				fprintf(stderr, szMsg);
-			#endif
+#ifdef _CONSOLE
+		// 需要 setlocale(LC_ALL, "chs"); 控制台才可以正确输出UNICODE中文 这里转换ANSI 避免这样问题
+#ifdef _UNICODE
+		char szTemp[512] = { 0 };
+		WideCharToMultiByte(CP_ACP, 0, szMsg, -1, szTemp, wcslen(szMsg) * sizeof(wchar_t), NULL, NULL);
+		fprintf(stderr, szTemp);
+#else
+		fprintf(stderr, szMsg);
+#endif
 
-			system("pause");
+		system("pause");
+		exit(1);
+#else
+		switch (MessageBox(NULL, szMsg, _T("CN_ASSERT"), MB_ABORTRETRYIGNORE | MB_TOPMOST))
+		{
+		case IDABORT:
 			exit(1);
-		#else
-			switch(MessageBox(NULL, szMsg, _T("CN_ASSERT"), MB_ABORTRETRYIGNORE))
-			{
-			case IDABORT:
-				exit(1);
 
-			case IDRETRY:
-				DebugBreak();
-				break;
+		case IDRETRY:
+			DebugBreak();
+			break;
 
-			case IDIGNORE:
-				break;
-			}
-		#endif
+		case IDIGNORE:
+			break;
+		}
+#endif
 
-	#else 
-		;// Release版本 什么都不做  预留
-	#endif
+#else 
+		MessageBox(NULL, szMsg, _T("串口操作失败"), MB_TOPMOST | MB_OK | MB_ICONSTOP);// Release版本 什么都不做  预留
+#endif
 		return false;
 	}
 
@@ -1591,80 +1589,80 @@ protected:
 #endif
 
 	//! 初始化
-	virtual void Init() 
+	virtual void Init()
 	{
 		::InitializeCriticalSection(&CS_);
 
-		memset(szName_, 0, 64*sizeof(TCHAR));
+		memset(szName_, 0, 64 * sizeof(TCHAR));
 
-		memset(&DCB_,	0, sizeof(DCB_));
-		DCB_.DCBlength	= sizeof(DCB_);
+		memset(&DCB_, 0, sizeof(DCB_));
+		DCB_.DCBlength = sizeof(DCB_);
 
-		hComm_				= INVALID_HANDLE_VALUE;
-		dwPort_				= (DWORD)-1;
-		dwOutCount_			= 0;
-		dwInCount_			= 0;
-		
-		dwWaitEvent_		= CN_COMM_WAIT_EVENT;
-		hWatchThread_		= NULL;
-		hReadThread_		= NULL;
-		hWriteThread_		= NULL;
-		hWatchThreadId_		= 0;
-		hReadThreadId_		= 0;
-		hWriteThreadId_		= 0;
-		
-		hNotifyWnd_			= NULL;
-		dwNotifyNum_		= 0;
-		hNotifyThreadId_	= 0;
-		pCP_				= NULL;
+		hComm_ = INVALID_HANDLE_VALUE;
+		dwPort_ = (DWORD)-1;
+		dwOutCount_ = 0;
+		dwInCount_ = 0;
 
-	#ifndef CN_COMM_FOR_CE
+		dwWaitEvent_ = CN_COMM_WAIT_EVENT;
+		hWatchThread_ = NULL;
+		hReadThread_ = NULL;
+		hWriteThread_ = NULL;
+		hWatchThreadId_ = 0;
+		hReadThreadId_ = 0;
+		hWriteThreadId_ = 0;
+
+		hNotifyWnd_ = NULL;
+		dwNotifyNum_ = 0;
+		hNotifyThreadId_ = 0;
+		pCP_ = NULL;
+
+#ifndef CN_COMM_FOR_CE
 		memset(&RO_, 0, sizeof(RO_));
 		memset(&WO_, 0, sizeof(WO_));
 		memset(&EO_, 0, sizeof(EO_));
-		
+
 		RO_.hEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
-		CN_ASSERT(RO_.hEvent != NULL); 
-		
+		CN_ASSERT(RO_.hEvent != NULL);
+
 		WO_.hEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
 		CN_ASSERT(WO_.hEvent != NULL);
-		
-		EO_.hEvent= ::CreateEvent(NULL, TRUE, FALSE, NULL);
-		CN_ASSERT(EO_.hEvent != NULL); 
-	#endif
 
-		hWatchEvent_	= ::CreateEvent(NULL, TRUE, FALSE, NULL);
-		CN_ASSERT(hWatchEvent_ != NULL); 
-		hReadEvent_		= ::CreateEvent(NULL, TRUE, FALSE, NULL);
-		CN_ASSERT(hReadEvent_ != NULL); 
-		hWriteEvent_	= ::CreateEvent(NULL, TRUE, FALSE, NULL);
-		CN_ASSERT(hWriteEvent_ != NULL); 
-	} 
+		EO_.hEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+		CN_ASSERT(EO_.hEvent != NULL);
+#endif
+
+		hWatchEvent_ = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+		CN_ASSERT(hWatchEvent_ != NULL);
+		hReadEvent_ = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+		CN_ASSERT(hReadEvent_ != NULL);
+		hWriteEvent_ = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+		CN_ASSERT(hWriteEvent_ != NULL);
+	}
 	//! 析构
 	virtual void Destroy()
 	{
-	#ifndef CN_COMM_FOR_CE
-		if(RO_.hEvent != NULL)
+#ifndef CN_COMM_FOR_CE
+		if (RO_.hEvent != NULL)
 			CloseHandle(RO_.hEvent);
-		
-		if(WO_.hEvent != NULL)
-			CloseHandle(WO_.hEvent);
-		
-		if(EO_.hEvent != NULL)
-			CloseHandle(EO_.hEvent);
-	#endif
 
-		if(hWatchEvent_ != NULL)
+		if (WO_.hEvent != NULL)
+			CloseHandle(WO_.hEvent);
+
+		if (EO_.hEvent != NULL)
+			CloseHandle(EO_.hEvent);
+#endif
+
+		if (hWatchEvent_ != NULL)
 			CloseHandle(hWatchEvent_);
 
-		if(hReadEvent_ != NULL)
+		if (hReadEvent_ != NULL)
 			CloseHandle(hReadEvent_);
 
-		if(hWriteEvent_ != NULL)
+		if (hWriteEvent_ != NULL)
 			CloseHandle(hWriteEvent_);
 
 		if (pCP_)
-			delete[] ((BYTE*)pCP_);
+			delete[]((BYTE*)pCP_);
 
 		::DeleteCriticalSection(&CS_);
 	}
@@ -1673,20 +1671,20 @@ protected:
 	{
 		dwPort_ = dwPort;
 
-	#if defined(CN_COMM_FOR_CE)
+#if defined(CN_COMM_FOR_CE)
 		wsprintf(szName_, _T("COM%d:"), dwPort);
-	#else
+#else
 		wsprintf(szName_, _T("\\\\.\\COM%d"), dwPort);
-	#endif
+#endif
 	}
 	//! 打开串口 
 	virtual bool OpenPort()
 	{
 		CN_ASSERT(!IsOpen());
 
-		if(IsOpen())
+		if (IsOpen())
 			Close();
-		
+
 		hComm_ = ::CreateFile(
 			szName_,
 			GENERIC_READ | GENERIC_WRITE,
@@ -1695,40 +1693,40 @@ protected:
 			OPEN_EXISTING,
 			FILE_ATTRIBUTE_NORMAL | (IsOverlappedMode() ? FILE_FLAG_OVERLAPPED : 0),
 			NULL
-			);
-		
+		);
+
 		return IsOpen();
 	}
 	//! 设置串口 
 	virtual bool SetupPort()
 	{
-		if(!CN_ASSERT(IsOpen()))
+		if (!CN_ASSERT(IsOpen()))
 			return false;
 
-		#if defined(CN_COMM_FOR_CE)
-			::SetupComm(hComm_, 4096, 4096);
-		#else
-			if(!CN_ASSERT(::SetupComm(hComm_, 4096, 4096)))//! 配置端口发送接收队列大小, 读4096字节, 写4096字节, 阻塞I/O模式发送队列无意义
-			return false; 
-		#endif
-		
-		if(!CN_ASSERT(::GetCommTimeouts(hComm_, &CO_)))
+#if defined(CN_COMM_FOR_CE)
+		::SetupComm(hComm_, 4096, 4096);
+#else
+		if (!CN_ASSERT(::SetupComm(hComm_, 4096, 4096)))//! 配置端口发送接收队列大小, 读4096字节, 写4096字节, 阻塞I/O模式发送队列无意义
+			return false;
+#endif
+
+		if (!CN_ASSERT(::GetCommTimeouts(hComm_, &CO_)))
 			return false;
 
-		CO_.ReadIntervalTimeout			= 100;//! 配置超时结构 字符最小间隔100ms
-		CO_.ReadTotalTimeoutMultiplier	= 0;
-		CO_.ReadTotalTimeoutConstant	= IsOverlappedMode() ? 500 : 250;//! 读超时 重叠I/O模式下500毫秒 阻塞I/O模式下250毫秒
+		CO_.ReadIntervalTimeout = 100;//! 配置超时结构 字符最小间隔100ms
+		CO_.ReadTotalTimeoutMultiplier = 0;
+		CO_.ReadTotalTimeoutConstant = IsOverlappedMode() ? 500 : 250;//! 读超时 重叠I/O模式下500毫秒 阻塞I/O模式下250毫秒
 		CO_.WriteTotalTimeoutMultiplier = IsOverlappedMode() ? 1 : 0;
-		CO_.WriteTotalTimeoutConstant	= IsOverlappedMode() ? 10000 : 250;//! 写超时 重叠I/O模式下(10000+1×字节数)毫秒 阻塞I/O模式下250毫秒
+		CO_.WriteTotalTimeoutConstant = IsOverlappedMode() ? 10000 : 250;//! 写超时 重叠I/O模式下(10000+1×字节数)毫秒 阻塞I/O模式下250毫秒
 
-		if(!CN_ASSERT(::SetCommTimeouts(hComm_, &CO_)))
-			return false; 
-		
-		if(!CN_ASSERT(::PurgeComm(hComm_, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR )))//! 清除端口
-			return false; 
-		
+		if (!CN_ASSERT(::SetCommTimeouts(hComm_, &CO_)))
+			return false;
+
+		if (!CN_ASSERT(::PurgeComm(hComm_, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR)))//! 清除端口
+			return false;
+
 		return true;
-	} 
+	}
 	//! 将端口数据读入缓冲区的
 	DWORD PortToBuffer(DWORD dwPortByteNum)
 	{
@@ -1758,7 +1756,7 @@ protected:
 			dwLength = O_.Read(btTemp, 1024);
 			O_.Unlock();
 
-			while ( dwIndex < dwLength )
+			while (dwIndex < dwLength)
 				dwIndex += WritePort(btTemp + dwIndex, dwLength - dwIndex);
 
 			return dwLength;
@@ -1768,7 +1766,7 @@ protected:
 	//! 当窗口句柄或线程ID有效, 送出消息, 用于相应事件通知, WPARAM默认包含串口编号 
 	virtual void Notify(UINT uMsg, LPARAM lParam = 0, bool bPostMode = true)
 	{
-		if(hNotifyWnd_ && ::IsWindow(hNotifyWnd_))//窗口句柄有效
+		if (hNotifyWnd_ && ::IsWindow(hNotifyWnd_))//窗口句柄有效
 		{
 			if (bPostMode)
 				PostMessage(hNotifyWnd_, uMsg, WPARAM(dwPort_), lParam);
@@ -1781,7 +1779,7 @@ protected:
 	}
 	//---------------------------------------threads callback-----------------------------------------------------
 	//! 响应EV_RXCHAR事件 由线程回调, 虚函数可以在基层类中扩展(推荐方式)    
-	virtual void OnReceive() 
+	virtual void OnReceive()
 	{
 		Notify(ON_COM_RECEIVE);
 	}
@@ -1858,7 +1856,7 @@ protected:
 		{
 			DWORD dwLength = GetQueueCount(true);
 
-			if (dwLength)
+			if (dwLength != -1 && dwLength > 0)
 			{
 				if (dwOption_ & EN_RX_BUFFER)
 				{
@@ -1888,47 +1886,47 @@ protected:
 
 		if (dwMask & EV_CTS)
 			OnCTS();
-			
+
 		if (dwMask & EV_DSR)
 			OnDSR();
-			
+
 		if (dwMask & EV_RING)
 			OnRing();
-			
+
 		if (dwMask & EV_RLSD)
 			OnRLSD();
-			
+
 		if (dwMask & EV_BREAK)
 			OnBreak();
-			
+
 		if (dwMask & EV_ERR)
 			OnError();
 
-	#ifdef CN_COMM_FOR_CE
+#ifdef CN_COMM_FOR_CE
 		if (dwMask & EV_POWER)
 			OnPower();
-	#endif
+#endif
 	}
-	
+
 #ifndef CN_COMM_FOR_CE
 	//! 监视线程用于重叠I/O模型 
 	virtual DWORD OverlappedModel()
 	{
-		if(!CN_ASSERT(IsOpen()))
+		if (!CN_ASSERT(IsOpen()))
 			return 1;
 
-		if(!CN_ASSERT(::SetCommMask(hComm_, dwWaitEvent_)))
+		if (!CN_ASSERT(::SetCommMask(hComm_, dwWaitEvent_)))
 			return 1;
 
-		for(DWORD dwMask = 0, dwLength; bContinue_ && IsOpen(); dwMask = 0)
+		for (DWORD dwMask = 0, dwLength; bContinue_ && IsOpen(); dwMask = 0)
 		{
 			if (GetQueueCount(true))//! 等待事件前会先扫描队列是否还有未处理数据 如果有模拟一个EV_RXCHAR事件 避免事件通知的陷阱
 				dwMask = EV_RXCHAR, Sleep(10);
 			else
 			{
-				if(!::WaitCommEvent(hComm_, &dwMask, &EO_))
+				if (!::WaitCommEvent(hComm_, &dwMask, &EO_))
 				{
-					if(::GetLastError() == ERROR_IO_PENDING)
+					if (::GetLastError() == ERROR_IO_PENDING)
 						::GetOverlappedResult(hComm_, &EO_, &dwLength, TRUE);
 					else
 					{
@@ -1937,15 +1935,15 @@ protected:
 					}
 				}
 			}
-			
-			if(dwMask == 0)
+
+			if (dwMask == 0)
 			{
 				if ((dwOption_&EN_TX_BUFFER) && !(dwOption_&EN_TX_THREAD) && O_.SafeSize())
 					BufferToPort();
 
 				continue;
 			}
-			
+
 			HandleEvent(dwMask);
 		}//for
 
@@ -1955,14 +1953,14 @@ protected:
 	//! 监视线程用于阻塞I/O模型 
 	virtual DWORD NonoverlappedModel()
 	{
-		if(!CN_ASSERT(IsOpen()))
+		if (!CN_ASSERT(IsOpen()))
 			return 1;
 
 		for (DWORD dwReturn; bContinue_ && IsOpen();)
 		{
 			dwReturn = WaitForSingleObject(hWatchEvent_, 50);
 
-			if (!bContinue_) 
+			if (!bContinue_)
 				break;
 
 			switch (dwReturn)
@@ -1995,7 +1993,7 @@ protected:
 					}
 				}
 
-				if ( (dwOption_&EN_TX_BUFFER) && O_.SafeSize() )
+				if ((dwOption_&EN_TX_BUFFER) && O_.SafeSize())
 					BufferToPort();
 
 				break;
@@ -2008,30 +2006,30 @@ protected:
 	//! 监视线程用于WINCE的I/O模型(重叠+阻塞 也不知微软把它叫什么模式)
 	virtual DWORD EmbeddedModel()
 	{
-		if(!CN_ASSERT(IsOpen()))
+		if (!CN_ASSERT(IsOpen()))
 			return 1;
 
-		if(!CN_ASSERT(::SetCommMask(hComm_, dwWaitEvent_)))
+		if (!CN_ASSERT(::SetCommMask(hComm_, dwWaitEvent_)))
 			return 1;
 
-		for(DWORD dwMask = 0; bContinue_ && IsOpen(); dwMask = 0)
+		for (DWORD dwMask = 0; bContinue_ && IsOpen(); dwMask = 0)
 		{
 			if (GetQueueCount(true))//! 等待事件前会先扫描队列是否还有未处理数据 如果有模拟一个EV_RXCHAR事件 避免事件通知的陷阱
 				dwMask = EV_RXCHAR, Sleep(10);
 			else
 			{
-				if(!::WaitCommEvent(hComm_, &dwMask, NULL))
+				if (!::WaitCommEvent(hComm_, &dwMask, NULL))
 					continue;
 			}
-			
-			if(dwMask == 0)
+
+			if (dwMask == 0)
 			{
-				if ( (dwOption_&EN_TX_BUFFER) && !(dwOption_&EN_TX_THREAD) && O_.SafeSize())
+				if ((dwOption_&EN_TX_BUFFER) && !(dwOption_&EN_TX_THREAD) && O_.SafeSize())
 					BufferToPort();
 
 				continue;
 			}
-		
+
 			HandleEvent(dwMask);
 
 		}//for
@@ -2042,7 +2040,7 @@ protected:
 	//! 用于双工处理当然您可以改变用途 
 	virtual DWORD ReadModel()
 	{
-		while(bContinue_)
+		while (bContinue_)
 		{
 			Sleep(50);
 
@@ -2076,7 +2074,7 @@ protected:
 		{
 			DWORD dwReturn = ::WaitForSingleObject(hWriteEvent_, 200);
 
-			while(bContinue_ && O_.SafeSize())
+			while (bContinue_ && O_.SafeSize())
 				BufferToPort();
 
 			if (dwReturn == WAIT_OBJECT_0)
@@ -2085,8 +2083,8 @@ protected:
 
 		return 0;
 	}
-	
-private:  
+
+private:
 	//! 禁止拷贝构造
 	CnComm(const CnComm&);
 	//! 禁止赋值函数
@@ -2100,17 +2098,17 @@ private:
 	static DWORD WINAPI WatchThreadProc(LPVOID lpPara)
 #endif
 	{
-	#ifdef CN_COMM_FOR_CE 
+#ifdef CN_COMM_FOR_CE 
 		DWORD dwCode = ((CnComm *)lpPara)->EmbeddedModel();
-	#else
-		DWORD dwCode = ((CnComm *)lpPara)->IsOverlappedMode() 
-			? ((CnComm *)lpPara)->OverlappedModel() 
+#else
+		DWORD dwCode = ((CnComm *)lpPara)->IsOverlappedMode()
+			? ((CnComm *)lpPara)->OverlappedModel()
 			: ((CnComm *)lpPara)->NonoverlappedModel();
 
-		#if defined(_MT) 
-			_endthreadex(dwCode);
-		#endif
-	#endif
+#if defined(_MT) 
+		_endthreadex(dwCode);
+#endif
+#endif
 
 		return dwCode;
 	}
@@ -2125,9 +2123,9 @@ private:
 	{
 		DWORD dwCode = ((CnComm *)lpPara)->ReadModel();
 
-		#if defined(_MT) && !defined(CN_COMM_FOR_CE)
-			_endthreadex(dwCode);
-		#endif
+#if defined(_MT) && !defined(CN_COMM_FOR_CE)
+		_endthreadex(dwCode);
+#endif
 
 		return dwCode;
 	}
@@ -2142,9 +2140,9 @@ private:
 	{
 		DWORD dwCode = ((CnComm *)lpPara)->WriteModel();
 
-		#if defined(_MT) && !defined(CN_COMM_FOR_CE)
-			_endthreadex(dwCode);
-		#endif
+#if defined(_MT) && !defined(CN_COMM_FOR_CE)
+		_endthreadex(dwCode);
+#endif
 
 		return dwCode;
 	}

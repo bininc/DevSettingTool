@@ -36,6 +36,18 @@
     <ClInclude Include="CnComm.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="IniFile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PL_CYHK.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SerialCmdDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DevSettingTool.cpp">
@@ -45,6 +57,18 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="IniFile.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PL_CYHK.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SerialCmdDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

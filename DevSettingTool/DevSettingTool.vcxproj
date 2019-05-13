@@ -28,14 +28,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v140_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
@@ -190,15 +190,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CnComm.h" />
+    <ClInclude Include="Common.h" />
     <ClInclude Include="DevSettingTool.h" />
     <ClInclude Include="DevSettingToolDlg.h" />
+    <ClInclude Include="IniFile.h" />
+    <ClInclude Include="PL_CYHK.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="SerialCmdDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Common.cpp" />
     <ClCompile Include="DevSettingTool.cpp" />
     <ClCompile Include="DevSettingToolDlg.cpp" />
+    <ClCompile Include="IniFile.cpp" />
+    <ClCompile Include="PL_CYHK.cpp" />
+    <ClCompile Include="SerialCmdDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
