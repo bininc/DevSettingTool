@@ -39,7 +39,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 protected:
 	afx_msg void OnClose();
-	afx_msg void OnWindowPosChanged(WINDOWPOS* lpwndpos);
 	afx_msg void OnExit();
 	afx_msg void OnAbout();
 	afx_msg void OnCbnSelchangeSelcom();
@@ -62,7 +61,7 @@ protected:
 	CComboBox m_selParity;
 	CComboBox m_selByteSize;
 	CComboBox m_selStopBits;
-	PL_CYHK m_cyhk;
+	PL_CYHK m_cyhk;	
 	CStatic m_gbMain;
 	SerialCmdDlg m_cmdDlg;
 	BOOL m_isCostomBaudRate;

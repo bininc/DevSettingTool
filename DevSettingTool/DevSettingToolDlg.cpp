@@ -102,7 +102,6 @@ BEGIN_MESSAGE_MAP(CDevSettingToolDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_CLOSE()
-	ON_WM_WINDOWPOSCHANGED()
 	ON_COMMAND(IDM_EXIT, &CDevSettingToolDlg::OnExit)
 	ON_COMMAND(IDM_About, &CDevSettingToolDlg::OnAbout)
 	ON_WM_DEVICECHANGE(&CDevSettingToolDlg::OnDeviceChange)
@@ -246,30 +245,22 @@ void CDevSettingToolDlg::InitCtrl()
 	FillCmbByteSize();
 	FillCmbStopBits();
 
-	m_cyhk.Create(IDD_CYHK, &m_gbMain);
+	CRect rect;
+	m_gbMain.GetWindowRect(&rect);
+	ScreenToClient(&rect);
+	rect.top = rect.top + 8;
+	rect.left = rect.left + 15;
+	rect.right = rect.right - 18;
+	rect.bottom = rect.bottom - 10;
+	m_cyhk.Create(IDD_CYHK, this);
 	m_cmdDlg.Create(IDD_SerialCmdDlg, this);
 	m_cyhk.Init(&m_cmdDlg);
+	m_cyhk.MoveWindow(&rect);
+	m_cyhk.ShowWindow(SW_SHOW);
 
 	LoadCfg();
 }
 
-void CDevSettingToolDlg::OnWindowPosChanged(WINDOWPOS * lpwndpos)
-{
-	CDialog::OnWindowPosChanged(lpwndpos);
-	CRect r, ClpRect, wRect;
-	m_gbMain.GetWindowRect(&ClpRect);
-	this->GetWindowRect(&wRect);
-	if (wRect.left == 0 && wRect.top == 0)
-	{
-		return;
-	}
-	m_gbMain.GetClientRect(&r);
-	r.top = ClpRect.top + 10;
-	r.left = ClpRect.left + 15;
-	r.right = r.right - 18;
-	r.bottom = r.bottom - 15;
-	m_cyhk.SetWindowPos(this, r.left, r.top, r.right, r.bottom, SWP_SHOWWINDOW);
-}
 
 BOOL CDevSettingToolDlg::OnDeviceChange(UINT nEventType, DWORD dwData)
 {
