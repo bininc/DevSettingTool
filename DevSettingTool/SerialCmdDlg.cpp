@@ -7,6 +7,8 @@
 #include <string>
 
 
+#define MAX_RX_LEN 1024*1024
+
 int Ascii2Hex(char* ascii, char* hex);
 int Hex2Ascii(char* hex, char* ascii);
 
@@ -33,7 +35,7 @@ void SerialCmdDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Check(pDX, IDC_CHECK_RX_HEX, m_bRxHex);
 	DDX_Check(pDX, IDC_CHECK_TX_HEX, m_bTxHex);
-	DDX_Text(pDX, IDC_RECEIVEDATA, m_sRx);
+	DDX_Control(pDX, IDC_RECEIVEDATA, m_editReceiveData);
 	DDX_Control(pDX, IDC_SENDDATA, m_editSendData);
 	DDX_Check(pDX, IDC_CHECK_STOPMOVE, m_bStopMove);
 }
@@ -47,6 +49,7 @@ BOOL SerialCmdDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 	Rx_.SetMinBlockSize(4096);
 
+	m_editReceiveData.SetLimitText(MAX_RX_LEN);
 	UpdateData(FALSE);
 
 	return TRUE;
@@ -69,6 +72,9 @@ BEGIN_MESSAGE_MAP(SerialCmdDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_STOPMOVE, &SerialCmdDlg::OnBnClickedCheckStopmove)
 	ON_EN_KILLFOCUS(IDC_SENDDATA, &SerialCmdDlg::OnEnKillfocusSenddata)
 	ON_WM_GETMINMAXINFO()
+	ON_BN_CLICKED(IDC_BTNCLAER, &SerialCmdDlg::OnBnClickedBtnclaer)
+	ON_WM_CTLCOLOR()
+	ON_EN_CHANGE(IDC_RECEIVEDATA, &SerialCmdDlg::OnEnChangeReceivedata)
 END_MESSAGE_MAP()
 
 
@@ -92,32 +98,55 @@ void SerialCmdDlg::OnSize(UINT nType, int cx, int cy)
 
 void SerialCmdDlg::AppendMsg(CString msg)
 {
+	if (msg == _T("")) {
+		msg = m_sRx;
+		m_sRx.Empty();
+	}
 	if (msg.IsEmpty()) return;
-	//if (!m_bStopMove)
-		//UpdateData();
-	m_sRx.Append(msg);
-	if (!m_bStopMove)
-		UpdateData(FALSE);
-	Sel2End();
+
+	if (m_bStopMove)
+		m_sRx.Append(msg);
+	else
+	{
+		int i = m_editReceiveData.GetWindowTextLength();
+		if (i >= MAX_RX_LEN)
+		{
+			i = i / 2;
+			m_editReceiveData.SetSel(0, i);
+			m_editReceiveData.ReplaceSel(_T(""), FALSE);
+		}
+		m_editReceiveData.SetSel(i, i, TRUE);
+		m_editReceiveData.ReplaceSel(msg, FALSE);
+	}
+
 }
 
 bool SerialCmdDlg::OpenSerial()
 {
+	if (openCloseing) return false;
+	openCloseing = true;
 	CString msg("==>");
 	if (ComPort == NULL)
 	{	//未定义串口 打开失败	
 		msg.AppendFormat(_T("打开串口COM%d失败！\r\n"), ComPort);
 		AppendMsg(msg);
 		NotifyMainWnd(ON_COM_OPEN, (WPARAM)-1);
+		openCloseing = false;
 		return false;
 	}
 
 	if (Comm_.IsOpen())
 	{
-		if (m_changed)
+		if (m_changed) {
+			openCloseing = false;
 			CloseSerial();
+		}
 		else
+		{
+			openCloseing = false;
 			return true;
+		}
+
 	}
 	bool suc = false;
 	try {
@@ -134,19 +163,22 @@ bool SerialCmdDlg::OpenSerial()
 	{
 
 	}
-
+	openCloseing = false;
 	return  suc;
 }
 
 void SerialCmdDlg::CloseSerial(DWORD dwWaitTime)
 {
+	if (openCloseing) return;
+	openCloseing = true;
 	if (Comm_.IsOpen()) {
-		CString msg("==>");
+		CString msg("\r\n==>");
 		Comm_.Close(dwWaitTime);
-		msg.AppendFormat(_T("\r\n==>关闭串口COM%d\r\n"), ComPort);
+		msg.AppendFormat(_T("关闭串口COM%d\r\n"), ComPort);
 		AppendMsg(msg);
 		NotifyMainWnd(ON_COM_CLOSE);
 	}
+	openCloseing = false;
 }
 
 bool SerialCmdDlg::IsOpen()
@@ -411,16 +443,6 @@ int Hex2Ascii(char* hex, char* ascii)
 	return tlen;
 }
 
-void SerialCmdDlg::Sel2End()
-{
-	if (m_bStopMove) return;
-	CEdit * edit = (CEdit*)GetDlgItem(IDC_RECEIVEDATA);
-	int cnt = edit->GetLineCount();
-	edit->LineScroll(cnt);
-	//long len = m_sRx.GetLength();
-	//edit->SetSel(len, len, true);
-	//edit->SetFocus();
-}
 
 DWORD SerialCmdDlg::ReadData(LPVOID lpBuf, DWORD dwSize)
 {
@@ -430,7 +452,7 @@ DWORD SerialCmdDlg::ReadData(LPVOID lpBuf, DWORD dwSize)
 
 void SerialCmdDlg::NotifyMainWnd(UINT uMsg, LPARAM wParam, LPARAM lParam)
 {
-	AfxGetMainWnd()->SendMessage(uMsg, wParam, lParam);
+	AfxGetApp()->m_pMainWnd->SendMessage(uMsg, wParam, lParam);
 }
 
 void SerialCmdDlg::AppendMsgMainWnd(CString msg)
@@ -443,8 +465,7 @@ void SerialCmdDlg::OnBnClickedCheckStopmove()
 	int	state = ((CButton*)GetDlgItem(IDC_CHECK_STOPMOVE))->GetCheck();
 	m_bStopMove = state == 1;
 	if (!m_bStopMove) {
-		UpdateData(FALSE);
-		Sel2End();
+		AppendMsg(_T(""));
 	}
 }
 
@@ -456,8 +477,8 @@ void SerialCmdDlg::OnEnKillfocusSenddata()
 
 void SerialCmdDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-	lpMMI->ptMinTrackSize.x = 813;
-	lpMMI->ptMinTrackSize.y = 573;
+	lpMMI->ptMinTrackSize.x = 914;
+	lpMMI->ptMinTrackSize.y = 615;
 
 	CDialog::OnGetMinMaxInfo(lpMMI);
 }
@@ -486,4 +507,40 @@ void SerialCmdDlg::WriteMsg(CString msg)
 	}
 
 	delete[] buffer;
+}
+
+void SerialCmdDlg::OnBnClickedBtnclaer()
+{
+	m_sRx.Empty();
+	m_editReceiveData.Clear();
+}
+
+
+HBRUSH SerialCmdDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialog::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  在此更改 DC 的任何特性
+
+	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
+
+	if (pWnd->GetDlgCtrlID() == IDC_RECEIVEDATA)
+	{
+		pDC->SetBkMode(TRANSPARENT);
+		pDC->SetTextColor(0xCCCCCC);
+		hbr = CreateSolidBrush(0x0C0C0C);
+	}
+	return hbr;
+}
+
+
+void SerialCmdDlg::OnEnChangeReceivedata()
+{
+	// TODO:  如果该控件是 RICHEDIT 控件，它将不
+	// 发送此通知，除非重写 CDialog::OnInitDialog()
+	// 函数并调用 CRichEditCtrl().SetEventMask()，
+	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+
+	// TODO:  在此添加控件通知处理程序代码
+	m_editReceiveData.Invalidate(FALSE);
 }

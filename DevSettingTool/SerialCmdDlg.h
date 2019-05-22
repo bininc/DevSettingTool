@@ -39,6 +39,7 @@ protected:
 	afx_msg void OnBnClickedCheckStopmove();
 	afx_msg void OnEnKillfocusSenddata();
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+	afx_msg void OnBnClickedBtnclaer();
 	DECLARE_MESSAGE_MAP()
 
 protected:
@@ -53,13 +54,14 @@ protected:
 	bool m_changed = false;
 	virtual BOOL OnInitDialog();
 	void AppendMsg(CString msg);
-
+	bool openCloseing = false;	//打开操作标记
 public:
-	CString	m_sRx;
+	CString m_sRx;
 	CString	m_sTx;
 	CEdit m_editSendData;
-	BOOL	m_bRxHex;
-	BOOL	m_bTxHex;
+	CEdit m_editReceiveData;
+	BOOL m_bRxHex;
+	BOOL m_bTxHex;
 	BOOL m_bStopMove;
 	bool OpenSerial();
 	void CloseSerial(DWORD dwWaitTime = 500);
@@ -74,10 +76,11 @@ public:
 	BYTE GetByteSize();
 	void SetStopBits(BYTE bStopBits);
 	BYTE GetStopBits();
-	void Sel2End();
 	DWORD ReadData(LPVOID lpBuf, DWORD dwSize);
 	void NotifyMainWnd(UINT uMsg, LPARAM wParam = 0, LPARAM lParam = 0);
 	void AppendMsgMainWnd(CString msg);
 	void WriteMsg(CString msg);
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnEnChangeReceivedata();
 };
 

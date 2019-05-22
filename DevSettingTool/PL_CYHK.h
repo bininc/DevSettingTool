@@ -68,7 +68,7 @@ private:
 	void SetEditText(int nIdc, CString text);
 	int GetCheckedRadioButton();
 	void SetRadioButtonChecked(int nIdc);
-	CWinThread* hThreadReadData;
+	HANDLE hThreadReadData;
 	UINT_PTR m_timerid_1s = 1;
 public:
 	SerialCmdDlg* m_cmd_dlg;
@@ -88,4 +88,5 @@ public:
 	LPCTSTR GetProtocolStr(int protocol);
 	afx_msg void OnBnClickedSavecfgfile();
 	afx_msg void OnBnClickedOpencfgfile();
+	afx_msg void OnBnClickedAntosetmac();
 };

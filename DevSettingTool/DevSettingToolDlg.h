@@ -65,7 +65,7 @@ protected:
 	CStatic m_gbMain;
 	SerialCmdDlg m_cmdDlg;
 	BOOL m_isCostomBaudRate;
-	CListBox m_lb_msg;
+	CString m_lb_msg;
 	CButton m_btnOpenClose;
 private:
 	void InitCtrl();
@@ -85,4 +85,5 @@ public:
 	void AppendMsg(CString* msg);
 	afx_msg void OnOpencfgfile();
 	afx_msg void OnSavecfgfile();
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 };

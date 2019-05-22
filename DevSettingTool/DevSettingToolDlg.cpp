@@ -19,6 +19,7 @@
 #endif
 
 #define INI_SECTION_NAME _T("SETTING")
+#define LB_MSG_MAX_LEN 512
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
@@ -93,7 +94,6 @@ void CDevSettingToolDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SELByteSize, m_selByteSize);
 	DDX_Control(pDX, IDC_SELStopBits, m_selStopBits);
 	DDX_Control(pDX, IDC_GBMAIN, m_gbMain);
-	DDX_Control(pDX, IDC_CMDSTATE, m_lb_msg);
 	DDX_Control(pDX, IDC_OPENCLOSE, m_btnOpenClose);
 }
 
@@ -120,6 +120,7 @@ BEGIN_MESSAGE_MAP(CDevSettingToolDlg, CDialog)
 	ON_BN_CLICKED(IDC_OPENCLOSE, &CDevSettingToolDlg::OnBnClickedOpenclose)
 	ON_COMMAND(IDM_OpenCfgFile, &CDevSettingToolDlg::OnOpencfgfile)
 	ON_COMMAND(IDM_SaveCfgFile, &CDevSettingToolDlg::OnSavecfgfile)
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
@@ -248,9 +249,9 @@ void CDevSettingToolDlg::InitCtrl()
 	CRect rect;
 	m_gbMain.GetWindowRect(&rect);
 	ScreenToClient(&rect);
-	rect.top = rect.top + 8;
-	rect.left = rect.left + 15;
-	rect.right = rect.right - 18;
+	rect.top = rect.top + 5;
+	rect.left = rect.left + 3;
+	rect.right = rect.right - 10;
 	rect.bottom = rect.bottom - 10;
 	m_cyhk.Create(IDD_CYHK, this);
 	m_cmdDlg.Create(IDD_SerialCmdDlg, this);
@@ -439,10 +440,15 @@ void CDevSettingToolDlg::AppendMsg(CString* msg)
 {
 	if (msg->IsEmpty()) return;
 	CTime now = CTime::GetCurrentTime();
-	CString timeStr = now.Format("%X");
-	timeStr.AppendFormat(_T(" %s"), msg->GetString());
-	m_lb_msg.AddString(timeStr);
-	m_lb_msg.SetCurSel(m_lb_msg.GetCount() - 1);
+	CString timeStr = _T("\r\n");
+	timeStr.AppendFormat(_T("%s %s"), now.Format("%X"), msg->GetString());
+	m_lb_msg.Append(timeStr);
+	if (m_lb_msg.GetLength() > LB_MSG_MAX_LEN)
+		m_lb_msg = m_lb_msg.Right(LB_MSG_MAX_LEN);
+
+	CEdit* lb_msg = (CEdit*)GetDlgItem(IDC_CMDSTATE);
+	lb_msg->SetWindowText(m_lb_msg);
+	lb_msg->LineScroll(lb_msg->GetLineCount());
 }
 
 void CDevSettingToolDlg::ReLoadCOM(bool bReset)
@@ -695,8 +701,8 @@ LRESULT CDevSettingToolDlg::OnComOpen(WPARAM wParam, LPARAM lParam)
 	}
 	else
 	{
-		m_btnOpenClose.SetWindowText(_T("关闭串口"));
 		msg.AppendFormat(_T("COM%d打开成功"), wParam);
+		m_btnOpenClose.SetWindowText(_T("关闭串口"));
 	}
 	AppendMsg(&msg);
 	return 0;
@@ -704,8 +710,8 @@ LRESULT CDevSettingToolDlg::OnComOpen(WPARAM wParam, LPARAM lParam)
 
 LRESULT CDevSettingToolDlg::OnComClose(WPARAM wParam, LPARAM lParam)
 {
-	m_btnOpenClose.SetWindowText(_T("打开串口"));
 	AppendMsg(&CString("串口关闭"));
+	m_btnOpenClose.SetWindowText(_T("打开串口"));
 	return 0;
 }
 
@@ -760,4 +766,20 @@ void CDevSettingToolDlg::OnOpencfgfile()
 void CDevSettingToolDlg::OnSavecfgfile()
 {
 	m_cyhk.OnBnClickedSavecfgfile();
+}
+
+
+HBRUSH CDevSettingToolDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialog::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  在此更改 DC 的任何特性
+
+	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
+	if (pWnd->GetDlgCtrlID() == IDC_CMDSTATE)
+	{
+		pDC->SetBkMode(TRANSPARENT);
+		hbr = CreateSolidBrush(0xFFFFFF);
+	}
+	return hbr;
 }

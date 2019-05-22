@@ -20,7 +20,7 @@ PL_CYHK::PL_CYHK(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_CYHK, pParent)
 {
 	m_cmd_dlg = NULL;
-	hThreadReadData = NULL;
+	hThreadReadData = INVALID_HANDLE_VALUE;
 }
 
 PL_CYHK::~PL_CYHK()
@@ -150,6 +150,7 @@ BEGIN_MESSAGE_MAP(PL_CYHK, CDialog)
 	ON_BN_CLICKED(IDC_OPENCFGFILE, &PL_CYHK::OnBnClickedOpencfgfile)
 	ON_WM_TIMER()
 	ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_ANTOSETMAC, &PL_CYHK::OnBnClickedAntosetmac)
 END_MESSAGE_MAP()
 
 
@@ -345,7 +346,7 @@ bool PL_CYHK::IsReadedSetting(bool showAlert)
 	return true;
 }
 
-UINT ReadDataFun(LPVOID lpParamter)
+DWORD WINAPI ReadDataFun(LPVOID lpParamter)
 {
 	PL_CYHK* cyhk = (PL_CYHK*)lpParamter;
 	int len = 0;
@@ -362,12 +363,12 @@ UINT ReadDataFun(LPVOID lpParamter)
 
 LRESULT PL_CYHK::OnReceiveData(WPARAM wParam, LPARAM lParam)
 {
-	if (hThreadReadData == NULL)
-		hThreadReadData = AfxBeginThread(ReadDataFun, this);
+	if (hThreadReadData == INVALID_HANDLE_VALUE)
+		hThreadReadData = CreateThread(NULL, 0, ReadDataFun, this, NULL, NULL);
 	DWORD code = 0;
-	GetExitCodeThread(hThreadReadData->m_hThread, &code);
+	GetExitCodeThread(hThreadReadData, &code);
 	if (code != STILL_ACTIVE)
-		hThreadReadData = AfxBeginThread(ReadDataFun, this);
+		hThreadReadData = CreateThread(NULL, 0, ReadDataFun, this, NULL, NULL);
 
 	return 0;
 }
@@ -714,4 +715,14 @@ void PL_CYHK::OnDestroy()
 
 	// TODO: 在此处添加消息处理程序代码
 	KillTimer(m_timerid_1s);
+}
+
+
+void PL_CYHK::OnBnClickedAntosetmac()
+{
+	CString veid = GetEditText(IDC_CUR_VEID);
+	if (!veid.IsEmpty())
+	{
+		SetEditText(IDC_VEID, veid);
+	}
 }
